@@ -127,3 +127,13 @@ npm install
 - Keep reusable UI in `client/src/components`.
 - Keep placeholder API-shaped data typed so backend integration is simpler later.
 - Run `npm run build` before opening a pull request.
+
+## CI/CD
+
+GitHub Actions runs the frontend CI/CD workflow on pull requests targeting `dev` or `main`, and on pushes to `dev` or `main`.
+
+The validation job checks out the repository, sets up Node.js 22, installs dependencies with `npm ci`, runs `npm run lint`, uses a safe placeholder because no test script is configured yet, and validates the production build with `npm run build`.
+
+Deployments are placeholders until hosting details are confirmed. The `deploy-dev` job runs only after successful validation on pushes to `dev`, and the `deploy-prod` job runs only after successful validation on pushes to `main`.
+
+Do not commit deployment credentials, API keys, or environment-specific secrets. Store required deployment values in GitHub Actions secrets.
