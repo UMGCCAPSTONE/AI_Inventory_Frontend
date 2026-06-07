@@ -67,6 +67,10 @@ http://localhost:5173/
 
 ## Common Commands
 
+> You can run these from the **repo root** (`npm run dev`, `build`, `lint`, `preview`) — the
+> root `package.json` delegates to `client/` — or from inside `client/` directly. The root
+> also hosts `npm run adr:sync` / `adr:check` (see Architecture Decision Records below).
+
 Run the app locally:
 
 ```powershell
