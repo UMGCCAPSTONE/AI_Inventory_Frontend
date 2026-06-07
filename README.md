@@ -91,16 +91,33 @@ Run lint checks:
 npm run lint
 ```
 
-## API Data Placeholders
+## Data layer & mock fixtures
 
-The current UI uses placeholder data so the dashboard can be built before the backend is connected.
+Components hold no hardcoded data. Each data-driven screen reads from a typed hook seam that
+returns one of four UI states — loading, error, empty, or success (see
+[`docs/adr/0005-ui-states.md`](docs/adr/0005-ui-states.md)):
 
-Placeholder data lives in:
+- `client/src/hooks/useDashboardSummary.ts`
+- `client/src/hooks/useTodayDashboard.ts`
+- `client/src/hooks/useSession.ts`
 
-- `client/src/components/DashboardHeader.tsx`
-- `client/src/components/TodayDashboard.tsx`
+Until the backend API is wired, these hooks serve **mock fixtures** from `client/src/mocks/`
+so the UI stays populated for testing. A flag controls this:
 
-Both components accept optional `data` props. When API integration is added, fetch the backend data in a parent component or state layer, then pass it into these components.
+- `VITE_ENABLE_MOCKS` — defaults to **dev-only** (on with `npm run dev`, off in the production
+  build). Set `VITE_ENABLE_MOCKS=false` to run the app against empty data and exercise the
+  empty states; set `true` to force mocks on.
+
+When the backend lands, replace each hook's resolver body with a call through the shared data
+layer (T-34); call sites and the four-state rendering do not change. Domain types come from the
+`@umgccapstone/contracts` seam (`client/src/types/contracts/`, see
+[`docs/adr/0006-frontend-first-contracts.md`](docs/adr/0006-frontend-first-contracts.md)).
+
+## Architecture Decision Records
+
+Frontend ADRs (MADR format) live in [`docs/adr/`](docs/adr/) — start with the
+[index](docs/adr/README.md). Cross-repo ADRs are mirrored into `docs/adr/shared/` by
+`npm run adr:sync` (run from the repo root) and verified in CI with `npm run adr:check`.
 
 ## Troubleshooting
 

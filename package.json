@@ -1,0 +1,11 @@
+{
+  "name": "ai-inventory-frontend-workspace",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Repo-level tooling for the Mise frontend monorepo (ADR sync + drift check). The app lives in client/.",
+  "type": "module",
+  "scripts": {
+    "adr:sync": "node scripts/adr-sync.mjs",
+    "adr:check": "node scripts/adr-sync.mjs --check"
+  }
+}

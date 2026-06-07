@@ -42,6 +42,24 @@ jobs:
       - name: Run build
         run: npm run build
 
+  adr-drift:
+    name: ADR drift check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Zero-dependency script; no install needed. Skips gracefully until the
+      # shared-ADR source (ADR_SHARED_SOURCE) is published. See docs/adr/shared/.
+      - name: Check synced ADRs are not drifted
+        run: node scripts/adr-sync.mjs --check
+
   deploy-dev:
     name: Deploy dev placeholder
     runs-on: ubuntu-latest

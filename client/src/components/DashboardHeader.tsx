@@ -1,63 +1,41 @@
-type HeaderMetric = {
-  label: string
-  value: string
-  valueTone?: 'danger' | 'warning' | 'success' | 'default'
-  helper: string
+import type { DashboardSummary } from '../types/contracts'
+import { useDashboardSummary } from '../hooks'
+import { EmptyState, ErrorState, LoadingState } from './states/StateViews'
+
+function DashboardHeader() {
+  const resource = useDashboardSummary()
+
+  switch (resource.status) {
+    case 'loading':
+      return (
+        <section className="dashboard-header" aria-labelledby="dashboard-heading">
+          <LoadingState title="Loading your kitchen summary..." />
+        </section>
+      )
+    case 'error':
+      return (
+        <section className="dashboard-header" aria-labelledby="dashboard-heading">
+          <ErrorState
+            title="Couldn't load your kitchen summary"
+            message={resource.error.message}
+          />
+        </section>
+      )
+    case 'empty':
+      return (
+        <section className="dashboard-header" aria-labelledby="dashboard-heading">
+          <EmptyState
+            title="No summary yet"
+            message="Once inventory and service data are available, your daily summary will appear here."
+          />
+        </section>
+      )
+    case 'success':
+      return <DashboardHeaderView data={resource.data} />
+  }
 }
 
-type DashboardHeaderData = {
-  greeting: string
-  chefName: string
-  alertHeadline: string
-  summary: string
-  facts: string[]
-  metrics: HeaderMetric[]
-}
-
-const placeholderHeaderData: DashboardHeaderData = {
-  greeting: 'Good afternoon',
-  chefName: 'Chef',
-  alertHeadline: 'Five things need attention.',
-  summary:
-    "Three ingredients are within 48 hours of expiring. I've put together four specials that use them up profitably - review below.",
-  facts: [
-    '87 SKUs tracked',
-    '$2,847 inventory value',
-    "Yesterday's covers: 142",
-    'Updated 8m ago',
-  ],
-  metrics: [
-    {
-      label: 'At Risk',
-      value: '$184',
-      valueTone: 'danger',
-      helper: 'expires < 48h',
-    },
-    {
-      label: "This Week's Waste",
-      value: '$67',
-      valueTone: 'warning',
-      helper: 'down 38% vs last week',
-    },
-    {
-      label: 'Avg Margin',
-      value: '68%',
-      valueTone: 'success',
-      helper: 'on featured dishes',
-    },
-    {
-      label: 'Reorder Today',
-      value: '7',
-      helper: 'items below par',
-    },
-  ],
-}
-
-type DashboardHeaderProps = {
-  data?: DashboardHeaderData
-}
-
-function DashboardHeader({ data = placeholderHeaderData }: DashboardHeaderProps) {
+function DashboardHeaderView({ data }: { data: DashboardSummary }) {
   return (
     <section className="dashboard-header" aria-labelledby="dashboard-heading">
       <div className="dashboard-copy">

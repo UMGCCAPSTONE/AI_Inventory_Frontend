@@ -1,242 +1,43 @@
-type InventoryFilter = {
-  label: string
-  count: number
-  active?: boolean
-  urgent?: boolean
-}
+import type { TodayDashboard as TodayDashboardData } from '../types/contracts'
+import { useTodayDashboard } from '../hooks'
+import { EmptyState, ErrorState, LoadingState } from './states/StateViews'
 
-type InventoryItem = {
-  icon: string
-  name: string
-  amount: string
-  supplier: string
-  unitCost: string
-  urgency: string
-  urgencyTone: 'danger' | 'warning' | 'success'
-  label: string
-  badge?: string
-  highlighted?: boolean
-}
+function TodayDashboard() {
+  const resource = useTodayDashboard()
 
-type SpecialIngredient = {
-  icon: string
-  name: string
-  amount: string
-}
-
-type Special = {
-  name: string
-  description: string
-  foodCost: string
-  suggestedPrice: string
-  margin: string
-  usageLabel: string
-  ingredients: SpecialIngredient[]
-  topPick?: boolean
-}
-
-type TodayDashboardData = {
-  inventory: {
-    title: string
-    subtitle: string
-    filters: InventoryFilter[]
-    items: InventoryItem[]
+  switch (resource.status) {
+    case 'loading':
+      return (
+        <section className="today-dashboard" aria-label="Inventory and specials">
+          <LoadingState title="Loading inventory and specials..." />
+        </section>
+      )
+    case 'error':
+      return (
+        <section className="today-dashboard" aria-label="Inventory and specials">
+          <ErrorState
+            title="Couldn't load inventory and specials"
+            message={resource.error.message}
+          />
+        </section>
+      )
+    case 'empty':
+      return (
+        <section className="today-dashboard" aria-label="Inventory and specials">
+          <EmptyState
+            title="Nothing to show yet"
+            message="Add inventory to start tracking expiry and generating tonight's specials."
+          />
+        </section>
+      )
+    case 'success':
+      return (
+        <section className="today-dashboard" aria-label="Inventory and specials">
+          <InventoryPanel data={resource.data.inventory} />
+          <SpecialsPanel data={resource.data.specials} />
+        </section>
+      )
   }
-  specials: {
-    eyebrow: string
-    title: string
-    subtitle: string
-    intro: string
-    items: Special[]
-  }
-}
-
-const placeholderTodayData: TodayDashboardData = {
-  inventory: {
-    title: 'Current inventory',
-    subtitle: 'Sorted by expiry urgency - click any item for detail',
-    filters: [
-      { label: 'All', count: 14, active: true },
-      { label: 'Produce', count: 6 },
-      { label: 'Proteins', count: 4 },
-      { label: 'Dairy', count: 3 },
-      { label: 'Pantry', count: 1 },
-      { label: 'Urgent', count: 3, urgent: true },
-    ],
-    items: [
-      {
-        icon: '🐟',
-        name: 'Branzino, whole',
-        amount: '4.2 kg',
-        supplier: 'Mercato Pesce',
-        unitCost: '$28.50/kg',
-        urgency: '36h',
-        urgencyTone: 'danger',
-        label: 'Until expiry',
-        badge: 'Use first',
-        highlighted: true,
-      },
-      {
-        icon: '🍅',
-        name: 'Heirloom tomatoes',
-        amount: '3.8 kg',
-        supplier: 'Greenmarket',
-        unitCost: '$9.20/kg',
-        urgency: '2d',
-        urgencyTone: 'danger',
-        label: 'Until expiry',
-        badge: 'Peak ripeness',
-      },
-      {
-        icon: '🌿',
-        name: 'Basil, fresh',
-        amount: '340 g',
-        supplier: 'Greenmarket',
-        unitCost: '$28/kg',
-        urgency: '2d',
-        urgencyTone: 'warning',
-        label: 'Until wilt',
-        badge: 'Wilting',
-      },
-      {
-        icon: '🧀',
-        name: 'Burrata, fresh',
-        amount: '12 pcs',
-        supplier: 'Caseificio Local',
-        unitCost: '$8.40 each',
-        urgency: '4d',
-        urgencyTone: 'warning',
-        label: 'Until expiry',
-      },
-      {
-        icon: '🥩',
-        name: 'Beef tenderloin',
-        amount: '5.6 kg',
-        supplier: 'Pat LaFrieda',
-        unitCost: '$42/kg',
-        urgency: '5d',
-        urgencyTone: 'warning',
-        label: 'Until expiry',
-      },
-      {
-        icon: '🍋',
-        name: 'Meyer lemons',
-        amount: '2.1 kg',
-        supplier: 'Greenmarket',
-        unitCost: '$6.40/kg',
-        urgency: '8d',
-        urgencyTone: 'success',
-        label: 'Until expiry',
-      },
-      {
-        icon: '🍝',
-        name: 'Fresh pappardelle',
-        amount: '2.8 kg',
-        supplier: 'In-house',
-        unitCost: '$4.20/kg',
-        urgency: '3d',
-        urgencyTone: 'success',
-        label: 'Made today',
-      },
-      {
-        icon: '🌽',
-        name: 'Sweet corn, summer',
-        amount: '4.4 kg',
-        supplier: 'Greenmarket',
-        unitCost: '$3.80/kg',
-        urgency: '6d',
-        urgencyTone: 'success',
-        label: 'Until expiry',
-      },
-      {
-        icon: '🧄',
-        name: 'Garlic, whole heads',
-        amount: '1.8 kg',
-        supplier: 'Pantry',
-        unitCost: '$5.20/kg',
-        urgency: '3w',
-        urgencyTone: 'success',
-        label: 'Until expiry',
-      },
-    ],
-  },
-  specials: {
-    eyebrow: 'M',
-    title: "Tonight's specials",
-    subtitle: 'AI-generated - grounded in deterministic margin & expiry math',
-    intro:
-      "Tonight you have three ingredients under 48 hours: branzino, heirloom tomatoes, and basil. Together they're $184 of inventory at risk. Here are four specials I'd put on the board - each one features at least one urgent ingredient and clears 60%+ margin at typical pricing.",
-    items: [
-      {
-        name: 'Branzino al sale, summer tomato',
-        description:
-          'Whole salt-baked branzino, smashed heirloom tomatoes, lemon, basil oil',
-        foodCost: '$14.20',
-        suggestedPrice: '$48',
-        margin: '70%',
-        usageLabel: 'Uses 3 urgent',
-        topPick: true,
-        ingredients: [
-          { icon: '🐟', name: 'Branzino', amount: '1 whole' },
-          { icon: '🍅', name: 'Heirloom', amount: '200g' },
-          { icon: '🌿', name: 'Basil', amount: '15g' },
-          { icon: '🍋', name: 'Meyer', amount: '1' },
-        ],
-      },
-      {
-        name: 'Caprese di stagione',
-        description: 'Heirloom tomato sliced thick, hand-torn burrata, basil, aged balsamic',
-        foodCost: '$5.80',
-        suggestedPrice: '$22',
-        margin: '74%',
-        usageLabel: 'Uses 3 urgent',
-        ingredients: [
-          { icon: '🍅', name: 'Heirloom', amount: '250g' },
-          { icon: '🌿', name: 'Basil', amount: '8g' },
-          { icon: '🧀', name: 'Burrata', amount: '1pc' },
-        ],
-      },
-      {
-        name: 'Pappardelle al pomodoro crudo',
-        description: 'Fresh wide pasta tossed with no-cook heirloom tomato sauce, basil, garlic',
-        foodCost: '$4.10',
-        suggestedPrice: '$24',
-        margin: '83%',
-        usageLabel: 'Uses 2 urgent - 1 needs-use',
-        ingredients: [
-          { icon: '🍅', name: 'Heirloom', amount: '180g' },
-          { icon: '🌿', name: 'Basil', amount: '12g' },
-          { icon: '🍝', name: 'Pappardelle', amount: '120g' },
-        ],
-      },
-      {
-        name: 'Branzino crudo, lemon & chili',
-        description: 'Thinly sliced raw branzino, Meyer lemon, basil shoots, espelette',
-        foodCost: '$6.40',
-        suggestedPrice: '$22',
-        margin: '71%',
-        usageLabel: 'Uses 2 urgent',
-        ingredients: [
-          { icon: '🐟', name: 'Branzino', amount: '80g' },
-          { icon: '🌿', name: 'Basil', amount: '4g' },
-          { icon: '🍋', name: 'Meyer', amount: '1/2' },
-        ],
-      },
-    ],
-  },
-}
-
-type TodayDashboardProps = {
-  data?: TodayDashboardData
-}
-
-function TodayDashboard({ data = placeholderTodayData }: TodayDashboardProps) {
-  return (
-    <section className="today-dashboard" aria-label="Inventory and specials">
-      <InventoryPanel data={data.inventory} />
-      <SpecialsPanel data={data.specials} />
-    </section>
-  )
 }
 
 function InventoryPanel({ data }: { data: TodayDashboardData['inventory'] }) {
