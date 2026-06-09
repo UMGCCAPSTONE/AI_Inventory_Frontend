@@ -24,6 +24,13 @@ const PRESERVE = new Set(['README.md'])
 const checkMode = process.argv.includes('--check')
 const source = process.env.ADR_SHARED_SOURCE?.trim()
 
+// Banner prepended to each synced copy so it's obvious the file is generated, not authored here.
+// The ADR bodies are authored once in @umgccapstone/contracts (adr/shared/); this mirrors the
+// backend repo's banner so the decision text stays congruent across both repos.
+const BANNER =
+  '<!-- SYNCED COPY — do not edit here. Authored in @umgccapstone/contracts ' +
+  '(adr/shared/) and pulled in via `npm run adr:sync`. -->\n\n'
+
 function log(msg) {
   process.stdout.write(`[adr-sync] ${msg}\n`)
 }
@@ -57,8 +64,9 @@ const targetFiles = readMarkdown(targetDir)
 if (checkMode) {
   const problems = []
   for (const [name, content] of sourceFiles) {
+    const expected = BANNER + content
     if (!targetFiles.has(name)) problems.push(`missing in shared/: ${name}`)
-    else if (targetFiles.get(name) !== content) problems.push(`out of date: ${name}`)
+    else if (targetFiles.get(name) !== expected) problems.push(`out of date: ${name}`)
   }
   for (const name of targetFiles.keys()) {
     if (!sourceFiles.has(name)) problems.push(`stale (not in source): ${name}`)
@@ -78,8 +86,9 @@ mkdirSync(targetDir, { recursive: true })
 let written = 0
 for (const [name, content] of sourceFiles) {
   const dest = join(targetDir, name)
-  if (!existsSync(dest) || readFileSync(dest, 'utf8') !== content) {
-    writeFileSync(dest, content)
+  const expected = BANNER + content
+  if (!existsSync(dest) || readFileSync(dest, 'utf8') !== expected) {
+    writeFileSync(dest, expected)
     written += 1
   }
 }

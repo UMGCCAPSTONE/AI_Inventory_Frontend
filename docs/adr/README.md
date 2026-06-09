@@ -35,5 +35,15 @@ decision, add a new ADR that supersedes the old one (update the old one's status
 
 ## Shared ADRs
 
-Cross-repo ADRs are authored elsewhere and mirrored into `docs/adr/shared/` by
-`npm run adr:sync`. Do not hand-edit that folder; CI runs `npm run adr:check` to detect drift.
+Cross-repo decisions are authored once in `@umgccapstone/contracts` (`adr/shared/`) and mirrored
+into [`docs/adr/shared/`](shared/) by `npm run adr:sync`. Do not hand-edit that folder; CI runs
+`npm run adr:check` to detect drift. See [`shared/README.md`](shared/README.md) for the source/sync
+details.
+
+| ADR | Title | Status |
+| --- | ----- | ------ |
+| [0001](shared/0001-two-repo-contract-package.md) | Two repositories bridged by a versioned contract package | accepted |
+| [0002](shared/0002-api-conventions-envelope-verbs.md) | REST conventions: response envelopes and verb semantics | accepted |
+| [0003](shared/0003-firebase-bearer-auth.md) | Authentication via Firebase ID tokens (Bearer) | accepted |
+| [0004](shared/0004-server-computed-derived-fields.md) | Derived/metric fields computed server-side only | accepted |
+| [0005](shared/0005-single-sourced-enums-zod.md) | Single-sourced enums and Zod schemas in the contract package | accepted |

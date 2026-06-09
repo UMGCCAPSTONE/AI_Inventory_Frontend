@@ -1,16 +1,36 @@
-# AI Inventory Frontend
+<div align="center">
 
-Frontend for the Mise smart kitchen inventory dashboard. The app is built with React, TypeScript, and Vite.
+# 🍽️ AI Inventory — Frontend
 
-## Prerequisites
+**Smart inventory for restaurants — track ingredients, cut food waste, and get AI-assisted menu specials.**
 
-Install these before running the project:
+[![Node](https://img.shields.io/badge/Node-%E2%89%A5%2022-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](./LICENSE)
 
-- Node.js 22 or newer
-- npm, included with Node.js
-- Git
+[Architecture (`CLAUDE.md`)](./CLAUDE.md) · [Decisions (ADRs)](./docs/adr/) · [Mock data & UI states](#-mock-data--ui-states) · [Project Board](https://github.com/orgs/UMGCCAPSTONE/projects/1)
 
-Check your versions:
+</div>
+
+---
+
+The **frontend** for the AI/LLM Inventory Management System: authentication, the dashboard, inventory and supplier management, menu-recommendation screens, reporting, and API integration. Built with React + TypeScript + Vite. Part of a multi-repo project bridged by the shared [`@umgccapstone/contracts`](https://github.com/orgs/UMGCCAPSTONE/packages) package.
+
+## ✨ Highlights
+
+- 🥬 **Inventory & dashboard UI** — at-risk value, low-stock and expiring-soon alerts, supplier and reporting screens
+- 🤖 **AI menu specials** — recommendation screens fed by the backend's Bedrock engine
+- 🔒 **Firebase auth** — Google Sign-In; the ID token rides along on every API call (see [shared ADR 0003](./docs/adr/shared/0003-firebase-bearer-auth.md))
+- 🎭 **Mock-first data layer** — every screen reads a typed hook seam that renders four UI states; mock fixtures keep the UI populated until the API lands
+- 🧱 **Typed end-to-end** — shared Zod schemas + types via the contracts package (no client-side recompute of business math, [shared ADR 0004](./docs/adr/shared/0004-server-computed-derived-fields.md))
+- 📐 **Decisions captured** — frontend + cross-repo Architecture Decision Records in [`docs/adr/`](./docs/adr/)
+
+## 📋 Prerequisites
+
+- **Node ≥ 22** and **npm** (bundled with Node)
+- **Git**
 
 ```powershell
 node --version
@@ -18,143 +38,89 @@ npm --version
 git --version
 ```
 
-## Project Structure
-
-```text
-AI_Inventory_Frontend/
-  client/
-    src/
-      components/
-        DashboardHeader.tsx
-        TodayDashboard.tsx
-      App.tsx
-      App.css
-      index.css
-    package.json
-    vite.config.ts
-  README.md
-```
-
-Most frontend work happens inside `client/src`.
-
-## Setup
-
-Clone the repository:
+## 🚀 Setup
 
 ```powershell
-git clone <repo-url>
-cd AI_Inventory_Frontend
-```
-
-Install dependencies:
-
-```powershell
-cd client
 npm install
 ```
 
-Start the development server:
+> `npm install` at the repo root installs the app in `client/` (the root `package.json` only hosts ADR tooling). You can also work from inside `client/` directly.
+
+Then create your env file from the template (fill in the values afterward):
+
+- **macOS / Linux:** `cp client/.env.example client/.env`
+- **Windows (PowerShell):** `Copy-Item client/.env.example client/.env`
+
+## ▶️ Run
 
 ```powershell
-npm run dev
+npm run dev      # Vite dev server with hot reload → http://localhost:5173
 ```
 
-Open the local URL printed by Vite. It is usually:
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Dev server (hot reload) at **http://localhost:5173** |
+| `npm run build` | Type-check + production build to `client/dist` |
+| `npm run preview` | Serve the production build locally |
 
-```text
-http://localhost:5173/
-```
+If port 5173 is taken: `npm run dev -- --port 5174`.
 
-## Common Commands
+## 🎭 Mock data & UI states
 
-> You can run these from the **repo root** (`npm run dev`, `build`, `lint`, `preview`) — the
-> root `package.json` delegates to `client/` — or from inside `client/` directly. The root
-> also hosts `npm run adr:sync` / `adr:check` (see Architecture Decision Records below).
-
-Run the app locally:
-
-```powershell
-npm run dev
-```
-
-Build for production:
-
-```powershell
-npm run build
-```
-
-Preview the production build:
-
-```powershell
-npm run preview
-```
-
-Run lint checks:
-
-```powershell
-npm run lint
-```
-
-## Data layer & mock fixtures
-
-Components hold no hardcoded data. Each data-driven screen reads from a typed hook seam that
-returns one of four UI states — loading, error, empty, or success (see
-[`docs/adr/0005-ui-states.md`](docs/adr/0005-ui-states.md)):
+Components hold **no hardcoded data**. Each data-driven screen reads a typed hook seam that returns one of four UI states — **loading · error · empty · success** (see [ADR 0005](./docs/adr/0005-ui-states.md)):
 
 - `client/src/hooks/useDashboardSummary.ts`
 - `client/src/hooks/useTodayDashboard.ts`
 - `client/src/hooks/useSession.ts`
 
-Until the backend API is wired, these hooks serve **mock fixtures** from `client/src/mocks/`
-so the UI stays populated for testing. A flag controls this:
+Until the API is wired, these hooks serve **mock fixtures** from `client/src/mocks/`. The `VITE_ENABLE_MOCKS` flag controls this — **dev-only by default** (on with `npm run dev`, off in the production build). Set it `false` to exercise the empty states, `true` to force mocks on.
 
-- `VITE_ENABLE_MOCKS` — defaults to **dev-only** (on with `npm run dev`, off in the production
-  build). Set `VITE_ENABLE_MOCKS=false` to run the app against empty data and exercise the
-  empty states; set `true` to force mocks on.
+When the backend lands, replace each hook's resolver with a call through the shared data layer (T-34); call sites and the four-state rendering don't change. Domain types come from the `@umgccapstone/contracts` seam (`client/src/types/contracts/`, see [ADR 0006](./docs/adr/0006-frontend-first-contracts.md)).
 
-When the backend lands, replace each hook's resolver body with a call through the shared data
-layer (T-34); call sites and the four-state rendering do not change. Domain types come from the
-`@umgccapstone/contracts` seam (`client/src/types/contracts/`, see
-[`docs/adr/0006-frontend-first-contracts.md`](docs/adr/0006-frontend-first-contracts.md)).
+## 🧪 Tests
 
-## Architecture Decision Records
+No test runner is wired yet — CI uses a safe placeholder until a framework is approved (per [CLAUDE.md](./CLAUDE.md), no new testing framework without team sign-off). Until then, the production build (`npm run build`, incl. `tsc -b`) is the gate before opening a PR.
 
-Frontend ADRs (MADR format) live in [`docs/adr/`](docs/adr/) — start with the
-[index](docs/adr/README.md). Cross-repo ADRs are mirrored into `docs/adr/shared/` by
-`npm run adr:sync` (run from the repo root) and verified in CI with `npm run adr:check`.
+## 🛠️ Scripts
 
-## Troubleshooting
+| Script | What it does |
+|--------|--------------|
+| `npm run dev` | Run the app with hot reload |
+| `npm run build` | Type-check and build to `client/dist/` |
+| `npm run preview` | Preview the production build |
+| `npm run lint` | ESLint |
+| `npm run adr:sync` | Sync shared ADRs from the contracts package |
+| `npm run adr:check` | CI drift check for shared ADRs |
 
-If dependencies fail to install, make sure you are inside the `client` folder before running `npm install`.
+## 🗂️ Project structure
 
-If the dev server port is already in use, run:
-
-```powershell
-npm run dev -- --port 5174
+```text
+client/
+  src/
+    components/       UI components (DashboardHeader, TodayDashboard, states/)
+    hooks/            Typed data seams (useAsyncResource + per-screen hooks)
+    mocks/            Mock fixtures (served behind VITE_ENABLE_MOCKS)
+    services/         API config (config.ts)
+    types/contracts/  Local stub for @umgccapstone/contracts (until published)
+    App.tsx           App shell
+  .env.example        VITE_ENABLE_MOCKS and friends
+  vite.config.ts
+docs/adr/             Architecture Decision Records (MADR); shared/ is synced
+scripts/adr-sync.mjs  Shared-ADR sync + drift check (zero-dep)
 ```
 
-If the page does not update after code changes, stop the server with `Ctrl+C` and restart it with `npm run dev`.
+## 📐 Conventions
 
-If TypeScript or Vite reports missing packages, reinstall dependencies:
+- **UI states** — every data-driven screen handles loading · error · empty · success ([ADR 0005](./docs/adr/0005-ui-states.md)).
+- **State** — TanStack Query for server state + React Context for app state; no Redux ([ADR 0002](./docs/adr/0002-state-management.md)).
+- **Forms** — React Hook Form + Zod, with Zod schemas single-sourced from the contracts package ([ADR 0003](./docs/adr/0003-forms-and-validation.md), [shared ADR 0005](./docs/adr/shared/0005-single-sourced-enums-zod.md)).
+- **API** — REST under `/api`; success `{ data, meta? }`, error `{ error: { code, message, field? } }`; the data layer unwraps `data` and normalizes errors centrally ([shared ADR 0002](./docs/adr/shared/0002-api-conventions-envelope-verbs.md)).
+- **Branches** — `feature/T_X_<short-name>` off `main`; PRs only, no direct commits.
 
-```powershell
-Remove-Item -Recurse -Force node_modules
-Remove-Item package-lock.json
-npm install
-```
+## 🧭 Tech stack
 
-## Notes for Contributors
+React · TypeScript · Vite · MUI + MUI X DataGrid · TanStack Query · React Hook Form + Zod · Firebase Auth · `@umgccapstone/contracts` (Zod + shared types). UI libraries land with their feature tickets; the choices are recorded in [`docs/adr/`](./docs/adr/).
 
-- Keep reusable UI in `client/src/components`.
-- Keep placeholder API-shaped data typed so backend integration is simpler later.
-- Run `npm run build` before opening a pull request.
-
-## CI/CD
-
-GitHub Actions runs the frontend CI/CD workflow on pull requests targeting `dev` or `main`, and on pushes to `dev` or `main`.
-
-The validation job checks out the repository, sets up Node.js 22, installs dependencies with `npm ci`, runs `npm run lint`, uses a safe placeholder because no test script is configured yet, and validates the production build with `npm run build`.
-
-Deployments are placeholders until hosting details are confirmed. The `deploy-dev` job runs only after successful validation on pushes to `dev`, and the `deploy-prod` job runs only after successful validation on pushes to `main`.
-
-Do not commit deployment credentials, API keys, or environment-specific secrets. Store required deployment values in GitHub Actions secrets.
+<div align="center">
+<sub>UMGC 495 Capstone · Summer 2026 · See <a href="./CLAUDE.md">CLAUDE.md</a> for architecture and <a href="./docs/adr/">docs/adr/</a> for decisions.</sub>
+</div>
