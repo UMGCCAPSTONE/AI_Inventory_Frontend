@@ -111,17 +111,26 @@ npm run test:run
 The repo ships a multi-stage `Dockerfile` so the frontend runs in a container for local dev and is deploy-ready for the T-23 EC2 compose:
 
 - **`dev` stage** — runs the Vite dev server with hot reload (used by the frontend's own dev compose).
-- **`prod` stage** — builds the static bundle and serves it with nginx (SPA deep-link fallback via `nginx.conf`). This is the image the T-23 deploy compose reuses.
+- **`prod` stage** — builds the static bundle and serves it with nginx. nginx also **reverse-proxies `/api/` to the backend**, so the browser talks to a single origin — **no CORS** — in local dev and on the single-host EC2 deploy. This is the image the T-23 deploy compose reuses.
 
-The app is a plain SPA: the browser calls the backend API directly, so the API base URL is inlined at build time via `VITE_API_BASE_URL`.
+Because of the proxy, build with a **relative** API base (`VITE_API_BASE_URL=/api`); nginx forwards `/api/...` to `BACKEND_ORIGIN` (an env var, default `http://backend:3000` for the compose network). `proxy_pass` uses a variable + resolver, so the container starts and serves the SPA even when the backend isn't running.
 
-Build and run the production image locally. **Run these from the repo root** (the folder that contains the `Dockerfile`) — *not* from `client/` — and keep the trailing `.` (it's the build context; omitting it prints a `docker buildx build` usage error):
+**Run these from the repo root** (the folder that contains the `Dockerfile`) — *not* from `client/` — and keep the trailing `.` (it's the build context; omitting it prints a `docker buildx build` usage error):
 
 ```powershell
 cd C:\path\to\AI_Inventory_Frontend
-docker build --target prod -t ai_inventory_frontend --build-arg VITE_API_BASE_URL=http://localhost:3000 .
-docker run --rm -p 8080:80 ai_inventory_frontend   # http://localhost:8080
+docker build --target prod -t ai_inventory_frontend --build-arg VITE_API_BASE_URL=/api .
+docker run --rm -p 8080:80 ai_inventory_frontend   # http://localhost:8080 (SPA only)
 ```
+
+To exercise the API proxy locally, run on the backend's compose network (after `npm run dev:up` in the backend repo) so nginx can resolve the `backend` service:
+
+```powershell
+docker run --rm --network ai_inventory_backend_default -p 8080:80 ai_inventory_frontend
+# calls to http://localhost:8080/api/... proxy to the backend container
+```
+
+For a backend running on the host instead of that network, override the upstream: `-e BACKEND_ORIGIN=http://host.docker.internal:3000`.
 
 ## Testing
 

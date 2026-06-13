@@ -28,9 +28,12 @@ ARG VITE_API_BASE_URL
 COPY client/ ./
 RUN npm run build
 
-# ---- prod: static bundle served by nginx --------------------------------------
+# ---- prod: static bundle served by nginx, with an API reverse-proxy -----------
 FROM nginx:1.27-alpine AS prod
 COPY --from=build /app/client/dist /usr/share/nginx/html
-# SPA fallback so client-side routes (React Router) resolve to index.html.
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# nginx's entrypoint runs envsubst on templates at startup, baking
+# ${BACKEND_ORIGIN} into the served config. Default targets the compose/deploy
+# service name; override at runtime (e.g. host.docker.internal for a host API).
+ENV BACKEND_ORIGIN=http://backend:3000
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 EXPOSE 80
