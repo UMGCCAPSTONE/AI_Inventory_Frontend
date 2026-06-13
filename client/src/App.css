@@ -855,3 +855,14 @@ main {
     grid-template-columns: 1fr;
   }
 }
+
+.status-message {
+  margin: 0;
+  padding: 18px 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.status-message.danger {
+  color: var(--tomato);
+}

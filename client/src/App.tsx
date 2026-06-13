@@ -34,13 +34,11 @@ function App() {
         <div className="account-area">
           <button className="service-pill" type="button">
             <span>Service</span>
-            <strong>Dinner - Tue</strong>
+            <strong>Not set</strong>
           </button>
           <button className="user-chip" type="button">
-            <span className="avatar" aria-hidden="true">
-              CM
-            </span>
-            <span>Chef Marco - Tavola</span>
+            <span className="avatar" aria-hidden="true" />
+            <span>Sign in</span>
           </button>
         </div>
       </header>
