@@ -115,9 +115,10 @@ The repo ships a multi-stage `Dockerfile` so the frontend runs in a container fo
 
 The app is a plain SPA: the browser calls the backend API directly, so the API base URL is inlined at build time via `VITE_API_BASE_URL`.
 
-Build and run the production image locally:
+Build and run the production image locally. **Run these from the repo root** (the folder that contains the `Dockerfile`) — *not* from `client/` — and keep the trailing `.` (it's the build context; omitting it prints a `docker buildx build` usage error):
 
 ```powershell
+cd C:\path\to\AI_Inventory_Frontend
 docker build --target prod -t ai_inventory_frontend --build-arg VITE_API_BASE_URL=http://localhost:3000 .
 docker run --rm -p 8080:80 ai_inventory_frontend   # http://localhost:8080
 ```
