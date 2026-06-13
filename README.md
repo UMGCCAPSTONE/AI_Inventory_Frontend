@@ -106,6 +106,22 @@ Run the test suite once (what CI runs):
 npm run test:run
 ```
 
+## Docker (T-23A)
+
+The repo ships a multi-stage `Dockerfile` so the frontend runs in a container for local dev and is deploy-ready for the T-23 EC2 compose:
+
+- **`dev` stage** — runs the Vite dev server with hot reload (used by the frontend's own dev compose).
+- **`prod` stage** — builds the static bundle and serves it with nginx (SPA deep-link fallback via `nginx.conf`). This is the image the T-23 deploy compose reuses.
+
+The app is a plain SPA: the browser calls the backend API directly, so the API base URL is inlined at build time via `VITE_API_BASE_URL`.
+
+Build and run the production image locally:
+
+```powershell
+docker build --target prod -t ai_inventory_frontend --build-arg VITE_API_BASE_URL=http://localhost:3000 .
+docker run --rm -p 8080:80 ai_inventory_frontend   # http://localhost:8080
+```
+
 ## Testing
 
 The test harness uses Vitest with React Testing Library and a jsdom environment. It is configured in the `test` block of `client/vite.config.ts`, and `client/src/setupTests.ts` loads the `@testing-library/jest-dom` matchers before each test file.
