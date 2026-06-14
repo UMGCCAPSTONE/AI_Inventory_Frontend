@@ -1,6 +1,7 @@
 export { appConfig } from './config'
 export type { AppConfig } from './config'
 export { fetchDashboardHeader, fetchTodayDashboard } from './dashboard'
+export { fetchSuppliers } from './suppliers'
 export { queryKeys } from './queryKeys'
 export { apiClient, setAuthHandlers } from './apiClient'
 export { firebaseAuth, isFirebaseConfigured } from './firebase'

@@ -12,3 +12,5 @@ export type {
 
 export type { ApiEnvelope, ApiErrorBody, ApiMeta } from './api'
 export { ApiError } from './api'
+
+export type { Supplier } from './supplier'

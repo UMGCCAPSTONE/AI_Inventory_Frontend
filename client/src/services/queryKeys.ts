@@ -6,4 +6,7 @@ export const queryKeys = {
     header: ['dashboard', 'header'] as const,
     today: ['dashboard', 'today'] as const,
   },
+  suppliers: {
+    list: ['suppliers', 'list'] as const,
+  },
 } as const

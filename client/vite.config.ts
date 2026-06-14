@@ -9,5 +9,13 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/setupTests.ts',
+    server: {
+      // Without inlining, @mui/material's .mjs files are loaded by Node's
+      // native ESM resolver, which can't follow react-transition-group's
+      // CJS-style directory re-export and throws on render (e.g. Alert).
+      deps: {
+        inline: [/@mui\/material/],
+      },
+    },
   },
 })
