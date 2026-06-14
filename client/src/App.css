@@ -866,3 +866,116 @@ main {
 .status-message.danger {
   color: var(--tomato);
 }
+
+/* Auth loading screen */
+.auth-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+}
+
+.auth-loading-text {
+  margin: 0;
+  color: var(--muted);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 15px;
+  font-style: italic;
+}
+
+/* Login page */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--surface);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 48px 40px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(255, 253, 248, 0.84);
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.login-heading {
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.login-subheading {
+  margin: 0 0 32px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.login-notice,
+.login-error {
+  margin: 0 0 20px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.login-notice {
+  background: rgba(30, 25, 20, 0.05);
+  color: var(--muted);
+}
+
+.login-error {
+  background: rgba(201, 65, 45, 0.08);
+  color: var(--tomato);
+}
+
+.sign-in-button {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--ink);
+  border-radius: 12px;
+  background: var(--ink);
+  color: #fffdf7;
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+.sign-in-button:hover:not(:disabled) {
+  background: #2b1e15;
+}
+
+.sign-in-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 32px 24px;
+  }
+
+  .login-heading {
+    font-size: 32px;
+  }
+}
