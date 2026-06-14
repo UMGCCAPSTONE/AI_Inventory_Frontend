@@ -5,9 +5,11 @@
 # static bundle and serves it with nginx — the slim image the T-23 EC2 deploy
 # compose runs. Same source, same base, so local matches prod.
 #
-# This is a plain SPA: the browser talks to the backend API directly. The API
-# base URL is injected at build time via VITE_API_BASE_URL (Vite inlines
-# VITE_* vars into the bundle), so there is no server-side proxy here.
+# The prod image serves the built SPA and nginx reverse-proxies /api to the
+# backend, so the browser talks to a single origin (no CORS) — build it with
+# VITE_API_BASE_URL=/api. Native `npm run dev` instead calls the backend
+# cross-origin (VITE_API_BASE_URL=http://localhost:3000/api) and relies on the
+# backend's CORS_ORIGIN; see README. VITE_* vars are inlined at build time.
 
 # ---- base: install deps for the client workspace ------------------------------
 FROM node:22-bookworm-slim AS base
@@ -37,3 +39,8 @@ COPY --from=build /app/client/dist /usr/share/nginx/html
 ENV BACKEND_ORIGIN=http://backend:3000
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 EXPOSE 80
+# Liveness probe: nginx is up and serving. Hits the same /health the deploy
+# compose/LB uses; wget ships in the alpine base. Readiness (/health/ready) is
+# checked by the orchestrator, not here — a container is either serving or not.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget -q --spider http://localhost/health || exit 1

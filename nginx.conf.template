@@ -14,6 +14,28 @@ server {
     root         /usr/share/nginx/html;
     index        index.html;
 
+    # Container probes for orchestration (T-23A). Paths mirror the backend's
+    # convention (/health liveness, /health/ready readiness) so the T-23 deploy
+    # compose and ops runbooks probe every container the same way.
+    #
+    # Served by nginx itself, with NO backend dependency: by design the SPA
+    # stays servable even when the API is down (the /api proxy degrades
+    # gracefully via the resolver), so the frontend container is "ready" the
+    # moment nginx can answer. Coupling readiness to the backend here would
+    # wrongly pull the SPA out of rotation whenever the API blips.
+    # `access_log off` keeps probe traffic out of logs; exact-match `location =`
+    # outranks the SPA fallback so these never 404 into index.html.
+    location = /health {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+    location = /health/ready {
+        access_log off;
+        default_type text/plain;
+        return 200 "ready\n";
+    }
+
     # API → backend container. The SPA calls same-origin /api/... (build with
     # VITE_API_BASE_URL=/api); nginx forwards the request to BACKEND_ORIGIN.
     location /api/ {

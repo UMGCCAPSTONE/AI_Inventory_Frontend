@@ -56,6 +56,19 @@ cd client
 npm install
 ```
 
+Configure environment variables:
+
+```powershell
+Copy-Item .env.example .env.local
+```
+
+For native local dev the frontend (`:5173`) calls the backend (`:3000`)
+**cross-origin**, so `.env.example` points `VITE_API_BASE_URL` at
+`http://localhost:3000/api`. For the browser to allow that call, the backend
+must set `CORS_ORIGIN=http://localhost:5173` (already in the backend's
+`.env.example`). The containerized image takes a different path — nginx proxies
+`/api` same-origin, so no CORS; see [Docker (T-23A)](#docker-t-23a) below.
+
 Start the development server:
 
 ```powershell
@@ -108,10 +121,19 @@ npm run test:run
 
 ## Docker (T-23A)
 
-The repo ships a multi-stage `Dockerfile` so the frontend runs in a container for local dev and is deploy-ready for the T-23 EC2 compose:
+The repo ships a multi-stage `Dockerfile` so the frontend runs in a container for local dev and is deploy-ready for the T-23 EC2 compose.
+
+**Requires Docker Engine 23.0 or newer (or a current Docker Desktop, 4.19+).** The `# syntax=docker/dockerfile:1` directive and the `docker buildx build` commands below rely on **BuildKit/buildx**, which is the default builder from Engine 23.0 on; on older engines you must opt in with `DOCKER_BUILDKIT=1` and install the buildx plugin. Check your versions:
+
+```powershell
+docker --version
+docker buildx version
+```
+
+The image has two stages:
 
 - **`dev` stage** — runs the Vite dev server with hot reload (used by the frontend's own dev compose).
-- **`prod` stage** — builds the static bundle and serves it with nginx. nginx also **reverse-proxies `/api/` to the backend**, so the browser talks to a single origin — **no CORS** — in local dev and on the single-host EC2 deploy. This is the image the T-23 deploy compose reuses.
+- **`prod` stage** — builds the static bundle and serves it with nginx. nginx also **reverse-proxies `/api/` to the backend**, so the browser talks to a single origin — **no CORS** — whenever the app is served from this image (locally or on the single-host EC2 deploy). This is the image the T-23 deploy compose reuses. (Native `npm run dev` does not use nginx and *does* need CORS — see [Setup](#setup).)
 
 Because of the proxy, build with a **relative** API base (`VITE_API_BASE_URL=/api`); nginx forwards `/api/...` to `BACKEND_ORIGIN` (an env var, default `http://backend:3000` for the compose network). `proxy_pass` uses a variable + resolver, so the container starts and serves the SPA even when the backend isn't running.
 
