@@ -1,0 +1,65 @@
+# Serves the built SPA and reverse-proxies the API so the browser talks to a
+# SINGLE ORIGIN — no CORS — in local dev and on the single-host EC2 deploy
+# (T-23), where nginx and the backend container sit behind the same port.
+#
+# This is a template: the nginx image's entrypoint runs envsubst on
+# /etc/nginx/templates/*.template at startup, substituting ${BACKEND_ORIGIN}
+# (the only env var referenced here; nginx's own $uri/$host/etc. are left
+# untouched). proxy_pass uses an nginx variable + resolver so the container
+# starts even when the backend isn't up yet (e.g. a standalone `docker run`
+# that only serves the static SPA). (T-23A)
+server {
+    listen       80;
+    server_name  _;
+    root         /usr/share/nginx/html;
+    index        index.html;
+
+    # Container probes for orchestration (T-23A). Paths mirror the backend's
+    # convention (/health liveness, /health/ready readiness) so the T-23 deploy
+    # compose and ops runbooks probe every container the same way.
+    #
+    # Served by nginx itself, with NO backend dependency: by design the SPA
+    # stays servable even when the API is down (the /api proxy degrades
+    # gracefully via the resolver), so the frontend container is "ready" the
+    # moment nginx can answer. Coupling readiness to the backend here would
+    # wrongly pull the SPA out of rotation whenever the API blips.
+    # `access_log off` keeps probe traffic out of logs; exact-match `location =`
+    # outranks the SPA fallback so these never 404 into index.html.
+    location = /health {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+    location = /health/ready {
+        access_log off;
+        default_type text/plain;
+        return 200 "ready\n";
+    }
+
+    # API → backend container. The SPA calls same-origin /api/... (build with
+    # VITE_API_BASE_URL=/api); nginx forwards the request to BACKEND_ORIGIN.
+    location /api/ {
+        resolver 127.0.0.11 ipv6=off valid=10s;          # Docker embedded DNS
+        set $api_upstream "${BACKEND_ORIGIN}";
+        proxy_pass $api_upstream$request_uri;
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # SPA fallback so client-side routes (React Router) resolve to index.html.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Long-cache fingerprinted build assets; never cache the HTML shell.
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+    location = /index.html {
+        add_header Cache-Control "no-cache";
+    }
+}
