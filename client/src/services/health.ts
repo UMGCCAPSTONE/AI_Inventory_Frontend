@@ -10,12 +10,19 @@ export type HealthStatus = {
   status: number | null
 }
 
+// The backend serves /health at the origin root, not under the API base path
+// (which ends in /api). Resolving "/health" against the base URL replaces the
+// whole path, so http://localhost:3000/api -> http://localhost:3000/health.
+function healthUrl(apiBaseUrl: string): string {
+  return new URL('/health', apiBaseUrl).toString()
+}
+
 export async function checkBackendHealth(): Promise<HealthStatus> {
   if (!appConfig.apiBaseUrl) {
     return { ok: false, status: null }
   }
 
-  const response = await fetch(`${appConfig.apiBaseUrl}/health`)
+  const response = await fetch(healthUrl(appConfig.apiBaseUrl))
   return { ok: response.ok, status: response.status }
 }
 
@@ -30,18 +37,17 @@ export async function logBackendHealth(): Promise<void> {
     return
   }
 
+  const url = healthUrl(appConfig.apiBaseUrl)
   try {
     const { ok, status } = await checkBackendHealth()
     if (ok) {
-      console.log(`[backend] Connected to backend at ${appConfig.apiBaseUrl} (health ${status}).`)
+      console.log(`[backend] Connected to backend — ${url} returned ${status}.`)
     } else {
-      console.warn(
-        `[backend] Reached ${appConfig.apiBaseUrl} but /health returned ${status}. Backend is up but unhealthy.`,
-      )
+      console.warn(`[backend] Reached ${url} but it returned ${status}. Backend is up but unhealthy.`)
     }
   } catch (error) {
     console.error(
-      `[backend] Could not reach backend at ${appConfig.apiBaseUrl}. Is it running, and is CORS allowing http://localhost:5173?`,
+      `[backend] Could not reach backend at ${url}. Is it running, and is CORS allowing http://localhost:5173?`,
       error,
     )
   }
