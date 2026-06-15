@@ -1,241 +1,177 @@
-# AI Inventory Frontend
+<div align="center">
 
-Frontend for the Mise smart kitchen inventory dashboard. The app is built with React, TypeScript, and Vite.
+# 🍽️ AI Inventory — Frontend
 
-## Prerequisites
+**The dashboard for the Mise smart kitchen — track inventory, surface alerts, and review AI menu specials.**
 
-Install these before running the project:
+[![Node](https://img.shields.io/badge/Node-%E2%89%A5%2022-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![MUI](https://img.shields.io/badge/MUI-9-007FFF?style=for-the-badge&logo=mui&logoColor=white)](https://mui.com/)
+[![Firebase](https://img.shields.io/badge/Firebase-Auth-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge)](./LICENSE)
 
-- Node.js 22 or newer
-- npm, included with Node.js
-- Git
+[Architecture (`CLAUDE.md`)](./CLAUDE.md) · [Decisions (ADRs)](./docs/adr/) · [Backend repo](https://github.com/UMGCCAPSTONE/AI_Inventory_Backend) · [Project Board](https://github.com/orgs/UMGCCAPSTONE/projects/1)
 
-Check your versions:
+</div>
 
-```powershell
-node --version
-npm --version
-git --version
-```
+---
 
-## Project Structure
+The **frontend** for the AI/LLM Inventory Management System: authentication, the dashboard, inventory and menu screens, and reporting. It talks to the [backend](https://github.com/UMGCCAPSTONE/AI_Inventory_Backend) over REST and shares types through the [`@umgccapstone/contracts`](#-shared-contracts) package.
 
-```text
-AI_Inventory_Frontend/
-  client/
-    src/
-      components/
-        DashboardHeader.tsx
-        DashboardHeader.test.tsx
-        TodayDashboard.tsx
-      App.tsx
-      App.css
-      index.css
-      setupTests.ts
-    package.json
-    vite.config.ts
-  package.json
-  README.md
-```
+## ✨ Highlights
 
-Most frontend work happens inside `client/src`.
+- ⚛️ **React 19 + Vite** — fast dev server with hot reload, typed end-to-end
+- 🔌 **Typed data layer** — TanStack Query hooks over a single `apiClient`; every screen renders loading / empty / error / success
+- 🔒 **Firebase auth** — optional; the app runs unauthenticated when unconfigured
+- 🐳 **Container-ready** — multi-stage image; nginx serves the SPA and proxies `/api` same-origin (no CORS) for the T-23 deploy
 
-## Setup
+## 📋 Prerequisites
 
-Clone the repository:
+- **Node ≥ 22** and npm
+- **Git**
+- **Docker** (optional) — Engine ≥ 23 / Desktop ≥ 4.19, only needed for the [container path](#-docker-t-23a)
 
-```powershell
-git clone <repo-url>
-cd AI_Inventory_Frontend
-```
+## 🚀 Setup
 
-Install dependencies:
+The app lives in [`client/`](./client). Install and configure there:
 
-```powershell
+```bash
 cd client
 npm install
 ```
 
-Configure environment variables:
+Create your env file from the template:
 
-```powershell
-Copy-Item .env.example .env.local
+- **macOS / Linux:** `cp .env.example .env.local`
+- **Windows (Command Prompt):** `copy .env.example .env.local`
+
+> **Cross-origin dev (CORS):** native dev runs the Vite server on `:5173` and calls the backend on `:3000` **cross-origin**, so `.env.example` points `VITE_API_BASE_URL` at `http://localhost:3000/api`. The browser blocks that unless the backend sets `CORS_ORIGIN=http://localhost:5173` (already in the backend's `.env.example`). The [container path](#-docker-t-23a) avoids CORS entirely — nginx proxies `/api` same-origin.
+
+## ▶️ Run
+
+```bash
+npm run dev      # Vite dev server with hot reload → http://localhost:5173
 ```
 
-For native local dev the frontend (`:5173`) calls the backend (`:3000`)
-**cross-origin**, so `.env.example` points `VITE_API_BASE_URL` at
-`http://localhost:3000/api`. For the browser to allow that call, the backend
-must set `CORS_ORIGIN=http://localhost:5173` (already in the backend's
-`.env.example`). The containerized image takes a different path — nginx proxies
-`/api` same-origin, so no CORS; see [Docker (T-23A)](#docker-t-23a) below.
+Open the URL Vite prints (usually `http://localhost:5173/`).
 
-Start the development server:
+> **Is the backend connected?** On startup (dev only) the app probes the backend and logs the result to the **browser console**:
+> ```text
+> [backend] Connected to backend — http://localhost:3000/health returned 200.
+> ```
+> A warning or error there means the backend isn't running or CORS is blocking it. Data screens render their **empty state** until feature tickets wire the service functions to real endpoints (see [Data layer](#-data-layer)).
 
-```powershell
-npm run dev
-```
+> All scripts can also be run from the repo root via a thin wrapper (`npm run dev`, `build`, `lint`, `test`, `test:run`) — it proxies into `client/`.
 
-Open the local URL printed by Vite. It is usually:
+## 🐳 Docker (T-23A)
 
-```text
-http://localhost:5173/
-```
+A multi-stage `Dockerfile` runs the frontend in a container — `dev` (Vite + hot reload) and `prod` (static bundle served by nginx). The **prod** image reverse-proxies `/api/` to the backend, so the browser sees a **single origin — no CORS**. This is the image the T-23 deploy compose reuses.
 
-## Common Commands
+**Run from the repo root** (where the `Dockerfile` is — *not* `client/`), and keep the trailing `.`:
 
-Run the app locally:
-
-```powershell
-npm run dev
-```
-
-Build for production:
-
-```powershell
-npm run build
-```
-
-Preview the production build:
-
-```powershell
-npm run preview
-```
-
-Run lint checks:
-
-```powershell
-npm run lint
-```
-
-Run tests in watch mode while developing:
-
-```powershell
-npm run test
-```
-
-Run the test suite once (what CI runs):
-
-```powershell
-npm run test:run
-```
-
-## Docker (T-23A)
-
-The repo ships a multi-stage `Dockerfile` so the frontend runs in a container for local dev and is deploy-ready for the T-23 EC2 compose.
-
-**Requires Docker Engine 23.0 or newer (or a current Docker Desktop, 4.19+).** The `# syntax=docker/dockerfile:1` directive and the `docker buildx build` commands below rely on **BuildKit/buildx**, which is the default builder from Engine 23.0 on; on older engines you must opt in with `DOCKER_BUILDKIT=1` and install the buildx plugin. Check your versions:
-
-```powershell
-docker --version
-docker buildx version
-```
-
-The image has two stages:
-
-- **`dev` stage** — runs the Vite dev server with hot reload (used by the frontend's own dev compose).
-- **`prod` stage** — builds the static bundle and serves it with nginx. nginx also **reverse-proxies `/api/` to the backend**, so the browser talks to a single origin — **no CORS** — whenever the app is served from this image (locally or on the single-host EC2 deploy). This is the image the T-23 deploy compose reuses. (Native `npm run dev` does not use nginx and *does* need CORS — see [Setup](#setup).)
-
-Because of the proxy, build with a **relative** API base (`VITE_API_BASE_URL=/api`); nginx forwards `/api/...` to `BACKEND_ORIGIN` (an env var, default `http://backend:3000` for the compose network). `proxy_pass` uses a variable + resolver, so the container starts and serves the SPA even when the backend isn't running.
-
-**Run these from the repo root** (the folder that contains the `Dockerfile`) — *not* from `client/` — and keep the trailing `.` (it's the build context; omitting it prints a `docker buildx build` usage error):
-
-```powershell
-cd C:\path\to\AI_Inventory_Frontend
+```bash
 docker build --target prod -t ai_inventory_frontend --build-arg VITE_API_BASE_URL=/api .
-docker run --rm -p 8080:80 ai_inventory_frontend   # http://localhost:8080 (SPA only)
+docker run --rm -p 8080:80 ai_inventory_frontend          # → http://localhost:8080 (SPA only)
 ```
 
-To exercise the API proxy locally, run on the backend's compose network (after `npm run dev:up` in the backend repo) so nginx can resolve the `backend` service:
+> **Why `VITE_API_BASE_URL=/api`?** The build bakes in a **relative** base; at runtime nginx forwards `/api/...` to `BACKEND_ORIGIN` (default `http://backend:3000`). A variable + resolver means the container serves the SPA even when the backend is down.
 
-```powershell
-docker run --rm --network ai_inventory_backend_default -p 8080:80 ai_inventory_frontend
-# calls to http://localhost:8080/api/... proxy to the backend container
+> **Exercise the API proxy locally:** attach to the backend's compose network so nginx can resolve the `backend` service —
+> ```bash
+> docker run --rm --network ai_inventory_backend_default -p 8080:80 ai_inventory_frontend
+> ```
+> For a backend on the host instead, override the upstream: `-e BACKEND_ORIGIN=http://host.docker.internal:3000`.
+
+## 🧪 Tests
+
+```bash
+npm run test         # watch mode (Vitest)
+npm run test:run     # single run — what CI runs
 ```
 
-For a backend running on the host instead of that network, override the upstream: `-e BACKEND_ORIGIN=http://host.docker.internal:3000`.
+Vitest + React Testing Library in a jsdom environment (configured in `client/vite.config.ts`; matchers loaded by `client/src/setupTests.ts`). Tests live next to the code as `*.test.tsx` — for example `DashboardHeader.tsx` → `DashboardHeader.test.tsx`. `describe`, `it`, and `expect` are global.
 
-## Testing
+## 🛠️ Scripts
 
-The test harness uses Vitest with React Testing Library and a jsdom environment. It is configured in the `test` block of `client/vite.config.ts`, and `client/src/setupTests.ts` loads the `@testing-library/jest-dom` matchers before each test file.
+Run from `client/` (or from the repo root for the ✓ wrapped ones):
 
-Test files live next to the code they test and use the `.test.tsx` (or `.test.ts`) suffix, for example:
+| Script | What it does | Root wrapper |
+|--------|--------------|:---:|
+| `npm run dev` | Vite dev server with hot reload | ✓ |
+| `npm run build` | Type-check + production build to `dist/` | ✓ |
+| `npm run preview` | Serve the production build locally | |
+| `npm run lint` | ESLint | ✓ |
+| `npm run test` | Vitest (watch) | ✓ |
+| `npm run test:run` | Vitest (single run — CI) | ✓ |
+| `npm run adr:sync` | Sync shared ADRs from the contracts package | |
+
+## 🗂️ Project structure
 
 ```text
-client/src/components/DashboardHeader.tsx
-client/src/components/DashboardHeader.test.tsx
+Dockerfile              Multi-stage build (dev + nginx prod)
+nginx.conf.template     SPA serving + /api reverse proxy
+package.json            Root wrapper — proxies scripts into client/
+client/
+  src/
+    components/         Reusable UI (e.g. DashboardHeader, TodayDashboard)
+    hooks/              TanStack Query hooks (one per screen seam)
+    services/           apiClient, config, query keys, fetch functions, health probe
+    types/              Shared TypeScript types + API envelope shapes
+    styles/             MUI theme
+  vite.config.ts        Vite + Vitest config
+docs/adr/               Architecture Decision Records (MADR)
 ```
 
-To add a test, create a `.test.tsx` file next to the component, render it with React Testing Library, and assert on what the user would see. `describe`, `it`, and `expect` are available globally.
+## 🔌 Data layer
 
-CI runs `npm run test:run` on pull requests targeting `dev` or `main`, so failing tests fail the build.
+Screens get data through typed TanStack Query hooks (the "hook seams" from ticket T-0) — there is **no hardcoded or mock data**.
 
-## Data Layer
+- **Types** live in `client/src/types`; the `{ data, meta }` / `{ error }` envelope is in `types/api.ts`.
+- **`apiClient`** (`services/apiClient.ts`) is the only place `fetch` is called for API data — it attaches the Firebase bearer token and unwraps the envelope into typed results or a thrown `ApiError`.
+- **Fetch functions** (`services/`) currently resolve to **empty datasets**; feature tickets replace their bodies with real `apiClient` calls.
+- **Query keys** are declared once in `services/queryKeys.ts` (see [ADR 0004](./docs/adr/)) — hooks must not inline their own.
+- Every screen renders **four states**: loading, empty, error, success (see [ADR 0005](./docs/adr/)).
 
-The app contains no hardcoded or mock data. Screens get data through typed TanStack Query hooks (the "hook seams" from ticket T-0):
+## 📐 Conventions
 
-- Shared types live in `client/src/types`.
-- Fetch functions live in `client/src/services` and currently resolve to empty datasets — feature tickets replace their bodies with real API calls through `appConfig.apiBaseUrl` (`VITE_API_BASE_URL`).
-- Query keys are declared once in `client/src/services/queryKeys.ts` (see ADR 0004). Hooks must not inline their own keys.
-- Hooks live in `client/src/hooks` and every screen that consumes one renders four states: loading, empty, error, and success (see ADR 0005).
+- **Components** — functional, PascalCase, one responsibility; business logic lives in hooks/services/utils.
+- **API base** — never hardcode URLs; read `appConfig.apiBaseUrl` (`VITE_API_BASE_URL`).
+- **Branches** — `feature/T_X_<short-name>` off `main`; PRs only, no direct commits.
+- **Before a PR** — run `npm run build` and `npm run test:run`.
 
-## Architecture Decision Records
+## 🧭 Tech stack
 
-Frontend decisions are documented in [`docs/adr/`](./docs/adr/) in MADR format — see the index there.
+React · TypeScript · Vite · MUI · TanStack Query · Firebase Auth · Vitest + React Testing Library · ESLint
 
-`docs/adr/shared/` holds synced copies of the cross-repo ADRs that ship inside the `@umgccapstone/contracts` package. Never edit those copies by hand; after bumping the package, regenerate them from `client/` with:
+## 📚 ADRs & shared contracts
 
-```powershell
-npm run adr:sync
-```
+Frontend decisions live in [`docs/adr/`](./docs/adr/) (MADR format). `docs/adr/shared/` holds synced copies of the cross-repo ADRs that ship inside `@umgccapstone/contracts` — never edit those by hand; after bumping the package, regenerate with `npm run adr:sync` (CI fails if they drift).
 
-CI re-runs the sync and fails if the committed copies drift from the installed package.
+The frontend consumes **`@umgccapstone/contracts`** (shared types, Zod schemas, enums) from GitHub Packages; the scoped registry mapping is committed in `client/.npmrc`. Auth is per-developer — create a token with `read:packages` scope and store it locally:
 
-## Shared Contracts Package
-
-The frontend consumes `@umgccapstone/contracts` (shared types, Zod schemas, enums, and constants) from GitHub Packages. The scoped registry mapping is committed in `client/.npmrc`.
-
-Authentication is per-developer and must not be committed. Create a GitHub personal access token with the `read:packages` scope, then store it in your user-level npm config:
-
-```powershell
+```bash
 npm config set //npm.pkg.github.com/:_authToken=YOUR_TOKEN
 ```
 
-In CI, provide the token through `actions/setup-node`'s `registry-url` and a `NODE_AUTH_TOKEN` secret.
+> **Status:** until the package is published, the dependency is not yet listed in `client/package.json` (so installs keep working) and `npm run adr:sync` is a graceful no-op. Once published, pin it: `npm install @umgccapstone/contracts@0.1.0 --save-exact`.
 
-> **Status:** the package is published by the backend T-0 ticket. Until it is available, the dependency is not yet listed in `client/package.json` (so installs and builds keep working), and `npm run adr:sync` is a graceful no-op. Once published, add it pinned to an exact version: `npm install @umgccapstone/contracts@0.1.0 --save-exact`.
+## ⚙️ CI/CD
 
-## Troubleshooting
+GitHub Actions runs on pull requests to `dev`/`main` and on pushes to those branches: checkout → Node 22 → `npm ci` → `npm run lint` → `npm run test:run` → `npm run build`. Deploy jobs (`deploy-dev`, `deploy-prod`) run only after successful validation and are placeholders until hosting is confirmed. Never commit credentials or environment-specific secrets — store them in Actions secrets.
 
-If dependencies fail to install, make sure you are inside the `client` folder before running `npm install`.
+## 👥 Team
 
-If the dev server port is already in use, run:
+| Member | Role |
+|--------|------|
+| [Dan Nunes](https://github.com/dnunes01) | Project Manager |
+| Robert Lee | Assistant Project Manager |
+| Adan Medina | Product Owner |
+| Spencer Renfro | Frontend Lead |
+| Arth Thakkar | AI / Cloud Lead |
+| [Jose Escandor](https://github.com/calcucool) | Backend Lead |
 
-```powershell
-npm run dev -- --port 5174
-```
-
-If the page does not update after code changes, stop the server with `Ctrl+C` and restart it with `npm run dev`.
-
-If TypeScript or Vite reports missing packages, reinstall dependencies:
-
-```powershell
-Remove-Item -Recurse -Force node_modules
-Remove-Item package-lock.json
-npm install
-```
-
-## Notes for Contributors
-
-- Keep reusable UI in `client/src/components`.
-- Fetch data only through the typed hooks in `client/src/hooks`; do not hardcode data in components.
-- Run `npm run build` and `npm run test:run` before opening a pull request.
-
-## CI/CD
-
-GitHub Actions runs the frontend CI/CD workflow on pull requests targeting `dev` or `main`, and on pushes to `dev` or `main`.
-
-The validation job checks out the repository, sets up Node.js 22, installs dependencies with `npm ci`, runs `npm run lint`, runs the test suite with `npm run test:run`, and validates the production build with `npm run build`.
-
-Deployments are placeholders until hosting details are confirmed. The `deploy-dev` job runs only after successful validation on pushes to `dev`, and the `deploy-prod` job runs only after successful validation on pushes to `main`.
-
-Do not commit deployment credentials, API keys, or environment-specific secrets. Store required deployment values in GitHub Actions secrets.
+<div align="center">
+<sub>UMGC 495 Capstone · Summer 2026 · See <a href="./CLAUDE.md">CLAUDE.md</a> for architecture and <a href="./docs/adr/">docs/adr/</a> for decisions.</sub>
+</div>
