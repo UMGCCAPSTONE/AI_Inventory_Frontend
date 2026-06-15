@@ -42,5 +42,8 @@ EXPOSE 80
 # Liveness probe: nginx is up and serving. Hits the same /health the deploy
 # compose/LB uses; wget ships in the alpine base. Readiness (/health/ready) is
 # checked by the orchestrator, not here — a container is either serving or not.
+# Use 127.0.0.1, NOT localhost: nginx listens on IPv4 only, but `localhost`
+# resolves to IPv6 ::1 first in the alpine image, so wget would be refused and
+# the container would wrongly report unhealthy.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget -q --spider http://localhost/health || exit 1
+  CMD wget -q --spider http://127.0.0.1/health || exit 1
