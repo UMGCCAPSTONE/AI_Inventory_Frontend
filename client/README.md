@@ -9,7 +9,7 @@ Copy `.env.example` to `.env.local` for local development and set values for you
 Client-side variables must use Vite's `VITE_` prefix. Future API calls should read the API base URL from `appConfig.apiBaseUrl` in `src/services/config.ts`.
 
 ```env
-VITE_API_BASE_URL=http://localhost:5000/api
+VITE_API_BASE_URL=http://localhost:3000/api
 ```
 
 Currently, two official plugins are available:

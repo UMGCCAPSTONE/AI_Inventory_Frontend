@@ -1,0 +1,9 @@
+# Root wrapper artifacts.
+# The root package.json only proxies scripts into client/ (it has no
+# dependencies). Running `npm install` here is a mistake — it installs nothing
+# useful but still writes these. Ignore them so they never get committed; run
+# installs inside client/ instead.
+/node_modules
+/package-lock.json
+
+.DS_Store
