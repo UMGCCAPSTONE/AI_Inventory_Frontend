@@ -9,5 +9,11 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/setupTests.ts',
+    server: {
+      // Inline MUI (and its react-transition-group dep) so Vite's resolver — not
+      // Node's ESM loader — follows their `.mjs` directory imports, which Node
+      // otherwise rejects ("Directory import ... is not supported").
+      deps: { inline: [/@mui\//, 'react-transition-group'] },
+    },
   },
 })
