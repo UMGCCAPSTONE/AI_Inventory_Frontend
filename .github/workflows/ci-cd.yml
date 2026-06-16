@@ -10,6 +10,11 @@ on:
       - dev
       - main
 
+# Needed to install the private @umgccapstone/contracts package from GitHub Packages.
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   validate:
     name: Validate frontend
@@ -29,9 +34,13 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: client/package-lock.json
+          registry-url: https://npm.pkg.github.com
+          scope: '@umgccapstone'
 
       - name: Install dependencies
         run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run lint
         run: npm run lint
@@ -60,9 +69,13 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: client/package-lock.json
+          registry-url: https://npm.pkg.github.com
+          scope: '@umgccapstone'
 
       - name: Install dependencies
         run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Sync shared ADRs from contracts package
         run: npm run adr:sync
