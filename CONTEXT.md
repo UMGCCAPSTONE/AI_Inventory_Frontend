@@ -14,3 +14,24 @@ Derived values calculated exclusively by the backend and returned in API respons
 
 ## API path assertion
 When a spec asserts that a user action fires an API call, it targets the string literal path (e.g. `'/inventory'`) passed to `apiClient.post/patch/delete`. No route-constant layer exists; the path string is the unit of assertion.
+
+## inventory item
+A tracked stock record in `@umgccapstone/contracts`: `name`, `category`, `quantity` + `unit`, `parLevel`, `expirationDate`, `unitCost`, and an optional `supplierId`. Items reference a supplier by **id only** — the supplier name and reorder cadence come from the Supplier API (T-14). An item is not a "SKU"; SKU count is the *number* of items.
+
+## low stock
+An item whose `quantity` is at or below its `parLevel`. Server-computed (`isLowStock`); rendered as a status, never recomputed. Avoid "out of stock" / "below par".
+
+## expiring soon
+An item that expires within **7 days** (already-expired counts). Server-computed (`isExpiringSoon`). The 7-day window is canonical — do not conflate with *urgent*.
+
+## urgent
+A display-only sub-tier of *expiring soon* — expires within ~48 hours. It is **not** an inventory filter: the contract status filter is only `low_stock | expiring_soon | ok`. The urgent filter drawn in early specs/mockups is deferred to backend **T-12U (#38)**, pending PO sign-off on the 48h window. "Urgent" surfaces only on the **Dashboard** (the "Expiring <48h" card and "Urgent Alerts" list — T-6A/T-6B). Never use "urgent" to mean "expiring soon," and never recompute it client-side.
+
+## at-risk value
+The stock value of an item that is low stock OR expiring soon, otherwise 0. Server-computed (`atRiskValue`). Avoid "value at risk" / "exposure".
+
+## category
+One of eight fixed values: `PRODUCE, MEAT, SEAFOOD, DAIRY, DRY_GOODS, BEVERAGE, FROZEN, OTHER`. The inventory filter chips use these eight — not grouped/marketing labels like "Proteins" or "Pantry".
+
+## reorder cadence
+How often a supplier delivers (e.g. daily, weekly), shown in the grid's "Par / Reorder" column. It lives on the **supplier** (`deliveryCadence`), not the item.
