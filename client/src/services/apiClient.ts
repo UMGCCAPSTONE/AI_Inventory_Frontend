@@ -35,7 +35,7 @@ async function safeParseJson(response: Response): Promise<EnvelopeOrError | null
   }
 }
 
-async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function requestEnvelope<T>(path: string, init: RequestInit = {}): Promise<ApiEnvelope<T>> {
   if (!appConfig.apiBaseUrl) {
     throw new ApiError({
       code: 'CONFIG_ERROR',
@@ -64,7 +64,11 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     throw new ApiError(errorBody, response.status)
   }
 
-  return (body as ApiEnvelope<T> | null)?.data as T
+  return (body as ApiEnvelope<T> | null) ?? { data: undefined as T }
+}
+
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  return (await requestEnvelope<T>(path, init)).data
 }
 
 function withJsonBody(method: string, body?: unknown): RequestInit {
@@ -76,6 +80,9 @@ function withJsonBody(method: string, body?: unknown): RequestInit {
 
 export const apiClient = {
   get: <T>(path: string) => request<T>(path),
+  // Returns the full { data, meta } envelope — for paginated list endpoints
+  // whose total/page live in `meta` (e.g. GET /api/inventory).
+  list: <T>(path: string) => requestEnvelope<T[]>(path),
   post: <T>(path: string, body?: unknown) => request<T>(path, withJsonBody('POST', body)),
   patch: <T>(path: string, body?: unknown) => request<T>(path, withJsonBody('PATCH', body)),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),

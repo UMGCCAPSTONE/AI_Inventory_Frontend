@@ -155,6 +155,12 @@ Pull requests should include:
 
 PRs should be small enough for teammates to review.
 
+## Branching & PR Workflow
+
+* `main` is the **production** branch. Never commit directly to `main` or open a PR against it.
+* Branch off `dev` and open every PR **into `dev`** (no direct commits to `dev` either).
+* `dev` is the integration branch; once `dev` is tested, `dev` is merged into `main` for release.
+
 ## Guardrails for Claude
 
 Claude should not:
