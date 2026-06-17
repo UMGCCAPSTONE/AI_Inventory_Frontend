@@ -1,10 +1,41 @@
+import { useEffect } from 'react'
 import './App.css'
 import DashboardHeader from './components/DashboardHeader'
 import TodayDashboard from './components/TodayDashboard'
+import { appConfig, checkBackendHealth } from './services'
+import { ApiError } from './types/api'
 
 const navItems = ['Today', 'Inventory', 'Menu', 'Suppliers', 'Reports']
 
 function App() {
+  // Dev convenience: probe the backend once on startup and log the result so
+  // we can confirm the frontend is talking to the configured API.
+  useEffect(() => {
+    let cancelled = false
+
+    const healthUrl = appConfig.apiBaseUrl
+      ? `${new URL(appConfig.apiBaseUrl).origin}/health`
+      : 'no API base URL configured'
+
+    checkBackendHealth()
+      .then((health) => {
+        if (cancelled) return
+        console.info(`[backend] connected to ${healthUrl}`, health)
+      })
+      .catch((error: unknown) => {
+        if (cancelled) return
+        const detail =
+          error instanceof ApiError
+            ? `${error.code}: ${error.message}`
+            : String(error)
+        console.error(`[backend] health check failed (${healthUrl}) — ${detail}`)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   return (
     <>
       <header className="app-header" aria-label="Primary">

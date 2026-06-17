@@ -5,6 +5,10 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Open the app in the default browser when `npm run dev` starts.
+  server: {
+    open: true,
+  },
   test: {
     environment: 'jsdom',
     globals: true,
