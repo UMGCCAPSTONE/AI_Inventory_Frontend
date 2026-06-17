@@ -51,11 +51,11 @@ const sampleItem: InventoryItem = {
   atRiskValue: 0,
 }
 
-function renderGrid() {
+function renderGrid(props: { onEdit?: (item: InventoryItem) => void } = {}) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={queryClient}>
-      <InventoryDataGrid />
+      <InventoryDataGrid {...props} />
     </QueryClientProvider>,
   )
 }
@@ -122,5 +122,42 @@ describe('InventoryDataGrid', () => {
         expect.objectContaining({ sort: 'name', order: 'desc' }),
       ),
     )
+  })
+
+  it('clicking a category chip drives the category param', async () => {
+    mockFetchInventory.mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 20 })
+
+    renderGrid()
+    await waitFor(() => expect(mockFetchInventory).toHaveBeenCalled())
+
+    fireEvent.click(screen.getByText('Produce'))
+
+    await waitFor(() =>
+      expect(mockFetchInventory).toHaveBeenCalledWith(expect.objectContaining({ category: 'PRODUCE' })),
+    )
+  })
+
+  it('clicking a status chip drives the status param', async () => {
+    mockFetchInventory.mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 20 })
+
+    renderGrid()
+    await waitFor(() => expect(mockFetchInventory).toHaveBeenCalled())
+
+    fireEvent.click(screen.getByText('Low stock'))
+
+    await waitFor(() =>
+      expect(mockFetchInventory).toHaveBeenCalledWith(expect.objectContaining({ status: 'low_stock' })),
+    )
+  })
+
+  it('calls onEdit with the row when its Edit button is clicked', async () => {
+    mockFetchInventory.mockResolvedValue({ items: [sampleItem], total: 1, page: 1, pageSize: 20 })
+    const onEdit = vi.fn()
+
+    renderGrid({ onEdit })
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
+
+    expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ id: '1', name: 'Roma tomato' }))
   })
 })

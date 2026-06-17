@@ -87,8 +87,9 @@ docker run --rm -p 8080:80 ai_inventory_frontend          # → http://localhost
 ## 🧪 Tests
 
 ```bash
-npm run test         # watch mode (Vitest)
-npm run test:run     # single run — what CI runs
+npm run test           # watch mode (Vitest)
+npm run test:run       # single run — what CI runs
+npm run test:coverage  # single run + coverage report (HTML in client/coverage/)
 ```
 
 Vitest + React Testing Library in a jsdom environment (configured in `client/vite.config.ts`; matchers loaded by `client/src/setupTests.ts`). Tests live next to the code as `*.test.tsx` — for example `DashboardHeader.tsx` → `DashboardHeader.test.tsx`. `describe`, `it`, and `expect` are global.
@@ -105,6 +106,7 @@ Run from `client/` (or from the repo root for the ✓ wrapped ones):
 | `npm run lint` | ESLint | ✓ |
 | `npm run test` | Vitest (watch) | ✓ |
 | `npm run test:run` | Vitest (single run — CI) | ✓ |
+| `npm run test:coverage` | Vitest single run + coverage report | |
 | `npm run adr:sync` | Sync shared ADRs from the contracts package | |
 
 ## 🗂️ Project structure
