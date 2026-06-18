@@ -1,0 +1,4 @@
+# The root package.json is a passthrough to client/ (no deps of its own).
+# Running `npm install` here generates stray root-level artifacts — ignore them.
+/node_modules
+/package-lock.json
