@@ -35,7 +35,20 @@ The **frontend** for the AI/LLM Inventory Management System: authentication, the
 
 ## 🚀 Setup
 
-The app lives in [`client/`](./client). Install and configure there:
+The app lives in [`client/`](./client).
+
+**First-time only — GitHub Packages auth.** `client/` depends on the private `@umgccapstone/contracts` package, so `npm install` needs a GitHub token with the **`read:packages`** scope. Without it you'll get a `401 Unauthorized` on install — it looks like a git/network error, but it's auth. Set it up once:
+
+```bash
+# simplest — reuse your existing gh login:
+gh auth refresh -s read:packages
+npm config set //npm.pkg.github.com/:_authToken="$(gh auth token)"
+
+# …or use a Personal Access Token (classic) with the read:packages scope:
+# npm config set //npm.pkg.github.com/:_authToken=YOUR_TOKEN
+```
+
+Then install:
 
 ```bash
 cd client
@@ -157,7 +170,7 @@ The frontend consumes **`@umgccapstone/contracts`** (shared types, Zod schemas, 
 npm config set //npm.pkg.github.com/:_authToken=YOUR_TOKEN
 ```
 
-> **Status:** until the package is published, the dependency is not yet listed in `client/package.json` (so installs keep working) and `npm run adr:sync` is a graceful no-op. Once published, pin it: `npm install @umgccapstone/contracts@0.1.0 --save-exact`.
+> **Published & required.** `@umgccapstone/contracts` is published to GitHub Packages and pinned in `client/package.json`, so both `npm install` and CI's `npm ci` need the `read:packages` auth from [Setup](#-setup) — without it you get a `401`. After bumping the package version, run `npm run adr:sync` to regenerate the shared ADR copies.
 
 ## ⚙️ CI/CD
 
