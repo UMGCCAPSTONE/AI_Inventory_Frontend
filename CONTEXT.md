@@ -35,3 +35,9 @@ One of eight fixed values: `PRODUCE, MEAT, SEAFOOD, DAIRY, DRY_GOODS, BEVERAGE, 
 
 ## reorder cadence
 How often a supplier delivers (e.g. daily, weekly), shown in the grid's "Par / Reorder" column. It lives on the **supplier** (`deliveryCadence`), not the item.
+
+## item count
+The number of tracked inventory records (`totalItems` on the dashboard summary). The contract has **no separate "SKU count"** and no "total units" — quantities live in mixed units (kg, l, each…) that can't be summed, so the record count is the only meaningful total. The Inventory page's "Total items" card uses it; there is **no** "SKU count" card.
+
+## last updated
+The newest `updatedAt` across inventory items (`lastUpdatedAt` on the dashboard summary; `null` when there are no items). Adds and edits bump it; **deletes do not** (no audit trail). Shown as the Inventory page's "Updated …" line. Avoid implying it's the *fetch* time.

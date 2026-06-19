@@ -19,10 +19,11 @@
     "@mui/material": "^9.1.1",
     "@mui/x-data-grid": "^9.5.0",
     "@tanstack/react-query": "^5.101.0",
-    "@umgccapstone/contracts": "^0.2.0",
+    "@umgccapstone/contracts": "^0.4.0",
     "firebase": "^12.14.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-router-dom": "^7.18.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

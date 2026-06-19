@@ -1,5 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { fetchDashboardHeader, fetchTodayDashboard, queryKeys } from '../services'
+import {
+  fetchDashboardHeader,
+  fetchDashboardSummary,
+  fetchTodayDashboard,
+  queryKeys,
+} from '../services'
 
 export function useDashboardHeader() {
   return useQuery({
@@ -12,5 +17,13 @@ export function useTodayDashboard() {
   return useQuery({
     queryKey: queryKeys.dashboard.today,
     queryFn: fetchTodayDashboard,
+  })
+}
+
+// Inventory KPI cards (T-7A) read this snapshot.
+export function useDashboardSummary() {
+  return useQuery({
+    queryKey: queryKeys.dashboard.summary,
+    queryFn: fetchDashboardSummary,
   })
 }

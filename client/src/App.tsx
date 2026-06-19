@@ -1,10 +1,30 @@
 import './App.css'
+import { NavLink, Route, Routes } from 'react-router-dom'
 import { useAuth } from './context'
 import DashboardHeader from './components/DashboardHeader'
 import TodayDashboard from './components/TodayDashboard'
-import { LoginPage } from './pages'
+import { InventoryPage, LoginPage } from './pages'
 
-const navItems = ['Today', 'Inventory', 'Menu', 'Suppliers', 'Reports']
+const navItems = [
+  { label: 'Today', to: '/' },
+  { label: 'Inventory', to: '/inventory' },
+  { label: 'Menu', to: '/menu' },
+  { label: 'Suppliers', to: '/suppliers' },
+  { label: 'Reports', to: '/reports' },
+]
+
+function DashboardView() {
+  return (
+    <>
+      <DashboardHeader />
+      <TodayDashboard />
+    </>
+  )
+}
+
+function ComingSoon() {
+  return <p style={{ padding: 24 }}>Coming soon.</p>
+}
 
 function App() {
   const { user, loading, isConfigured, signInWithGoogle, signOut } = useAuth()
@@ -22,9 +42,7 @@ function App() {
   }
 
   const avatarInitial =
-    user?.displayName?.[0]?.toUpperCase() ??
-    user?.email?.[0]?.toUpperCase() ??
-    null
+    user?.displayName?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? null
 
   const displayName = user?.displayName ?? user?.email ?? null
 
@@ -43,14 +61,14 @@ function App() {
 
         <nav className="main-nav" aria-label="Main navigation">
           {navItems.map((item) => (
-            <a
-              className={item === 'Today' ? 'nav-link active' : 'nav-link'}
-              href={`#${item.toLowerCase()}`}
-              key={item}
-              aria-current={item === 'Today' ? 'page' : undefined}
+            <NavLink
+              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+              to={item.to}
+              end={item.to === '/'}
+              key={item.label}
             >
-              {item}
-            </a>
+              {item.label}
+            </NavLink>
           ))}
         </nav>
 
@@ -86,8 +104,11 @@ function App() {
       </header>
 
       <main>
-        <DashboardHeader />
-        <TodayDashboard />
+        <Routes>
+          <Route path="/" element={<DashboardView />} />
+          <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="*" element={<ComingSoon />} />
+        </Routes>
       </main>
     </>
   )

@@ -1,23 +1,107 @@
-import { describe, it } from 'vitest'
+import { render, screen, within } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { DashboardSummary } from '@umgccapstone/contracts'
+import InventoryPage from './InventoryPage'
+import { fetchDashboardSummary, fetchInventory, fetchSuppliers } from '../services'
 
-// Placeholder specs for the Inventory page (T-7A / T-7B / T-7C).
-// All blocks are describe.skip until the page component exists.
-// Un-skip and fill in each block as the corresponding ticket merges.
+// The page renders the MUI X DataGrid (T-7B), which needs these in jsdom.
+class ResizeObserverStub {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver
+if (!window.matchMedia) {
+  window.matchMedia = (query: string) =>
+    ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    }) as unknown as MediaQueryList
+}
 
-// T-7A: Inventory Page — Metrics & Layout
-describe.skip('InventoryPage — US-INV-1: metrics & layout', () => {
-  it.todo('renders the page without crashing when mounted with mock data')
-  it.todo('displays server-computed inventory KPIs (total items, total value, expiring count)')
-  it.todo('shows the correct page heading and layout regions')
+vi.mock('../services', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../services')>()
+  return {
+    ...actual,
+    fetchDashboardSummary: vi.fn(),
+    fetchInventory: vi.fn(),
+    fetchSuppliers: vi.fn(),
+  }
 })
 
-// T-7B: Inventory DataGrid Component
+const summary: DashboardSummary = {
+  totalItems: 9,
+  lowStockCount: 8,
+  expiringSoonCount: 2,
+  atRiskValue: 120,
+  lastUpdatedAt: null,
+}
+
+function renderPage() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <InventoryPage />
+    </QueryClientProvider>,
+  )
+}
+
+beforeEach(() => {
+  vi.mocked(fetchInventory).mockResolvedValue({ items: [], total: 0, page: 1, pageSize: 20 })
+  vi.mocked(fetchSuppliers).mockResolvedValue([])
+})
+
+afterEach(() => {
+  vi.clearAllMocks()
+})
+
+// T-7A: Inventory Page — Metrics & Layout
+describe('InventoryPage — US-INV-1: metrics & layout', () => {
+  it('renders the heading and the four KPI cards from the summary API', async () => {
+    vi.mocked(fetchDashboardSummary).mockResolvedValue(summary)
+
+    renderPage()
+
+    expect(await screen.findByRole('heading', { name: /inventory items/i })).toBeInTheDocument()
+
+    // Scope to the metrics region — the grid also has an "Expiring soon" chip.
+    const metrics = screen.getByLabelText('Inventory metrics')
+    expect(await within(metrics).findByText('Total items')).toBeInTheDocument()
+    for (const label of ['Expiring soon', 'At-risk value', 'Below par']) {
+      expect(within(metrics).getByText(label)).toBeInTheDocument()
+    }
+    // Values come straight from the API (ADR 0004 — not recomputed)
+    expect(within(metrics).getByText('9')).toBeInTheDocument() // totalItems
+    expect(within(metrics).getByText('$120.00')).toBeInTheDocument() // atRiskValue
+  })
+
+  it('shows the loading state while the summary is fetching', () => {
+    vi.mocked(fetchDashboardSummary).mockReturnValue(new Promise<DashboardSummary>(() => {}))
+
+    renderPage()
+
+    expect(screen.getByText(/loading metrics/i)).toBeInTheDocument()
+  })
+
+  it('shows the error state when the summary request fails', async () => {
+    vi.mocked(fetchDashboardSummary).mockRejectedValue(new Error('boom'))
+
+    renderPage()
+
+    expect(await screen.findByText(/couldn't load metrics/i)).toBeInTheDocument()
+  })
+})
+
+// T-7B: Inventory DataGrid — covered in InventoryDataGrid.test.tsx
 describe.skip('InventoryPage — US-INV-2: item grid', () => {
-  it.todo('renders a row for each item in the mock API response')
-  it.todo('shows the low-stock badge when isLowStock is true in the API response — does not recompute from quantity')
-  it.todo('shows the expiring-soon badge when isExpiringSoon is true in the API response — does not recompute from date')
-  it.todo('renders the empty state message when the items array is empty')
-  it.todo('applies the urgency tone class from the server field — does not derive it from raw data')
+  it.todo('see InventoryDataGrid.test.tsx')
 })
 
 // T-7C: Inventory Item Management Flow
