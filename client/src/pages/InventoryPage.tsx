@@ -1,0 +1,76 @@
+import { Box, Button, Typography } from '@mui/material'
+import { useDashboardSummary } from '../hooks'
+import StatCard from '../components/StatCard'
+import InventoryDataGrid from '../components/InventoryDataGrid'
+import { ErrorState, LoadingState } from '../components/states'
+
+// T-7A — Inventory page: KPI cards from GET /api/dashboard/summary + the T-7B
+// data grid. Cards render the server summary (ADR 0004), never recomputed.
+// Cards = the four the 0.3.0+ contract backs (no "SKU count"; "<48h" → T-12U).
+
+const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+
+// Honest relative time from the server's `lastUpdatedAt` (null when no items).
+function lastUpdatedLabel(iso: string | null): string | null {
+  if (!iso) return null
+  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.round(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  return new Date(iso).toLocaleDateString()
+}
+
+function InventoryPage() {
+  const { data: summary, isPending, isError, refetch } = useDashboardSummary()
+
+  const updated = summary ? lastUpdatedLabel(summary.lastUpdatedAt) : null
+  const subline = summary
+    ? `${summary.totalItems} items tracked${updated ? ` · Updated ${updated}` : ''}`
+    : 'Loading inventory…'
+
+  return (
+    <Box sx={{ p: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+        <Box>
+          <Typography variant="h4" component="h1">
+            Inventory items
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {subline}
+          </Typography>
+        </Box>
+        {/* Placeholder — T-7C wires the add flow. */}
+        <Button variant="contained">+ Add Item</Button>
+      </Box>
+
+      <Box sx={{ mb: 3 }} aria-label="Inventory metrics">
+        {isPending ? (
+          <LoadingState label="Loading metrics…" />
+        ) : isError ? (
+          <ErrorState
+            title="Couldn't load metrics"
+            description="Check your connection and try again."
+            onRetry={() => refetch()}
+          />
+        ) : (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <StatCard label="Total items" value={String(summary.totalItems)} />
+            <StatCard
+              label="Expiring soon"
+              value={String(summary.expiringSoonCount)}
+              tone="warning"
+              helper="within 7 days"
+            />
+            <StatCard label="At-risk value" value={money.format(summary.atRiskValue)} tone="danger" />
+            <StatCard label="Below par" value={String(summary.lowStockCount)} tone="warning" />
+          </Box>
+        )}
+      </Box>
+
+      <InventoryDataGrid />
+    </Box>
+  )
+}
+
+export default InventoryPage
