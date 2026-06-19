@@ -1,10 +1,17 @@
-import { useState } from 'react'
-import { Box, TextField, Typography } from '@mui/material'
+import { useMemo, useState } from 'react'
+import { Box, Button, TextField, Typography } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
+import type { Supplier } from '@umgccapstone/contracts'
 import { useSuppliers } from '../hooks'
 import { EmptyState, ErrorState, LoadingState } from './states'
 
-const columns: GridColDef[] = [
+type SupplierDirectoryProps = {
+  // When provided, each row gets an Edit action that hands back the full
+  // supplier (T-9B). Omitted → read-only directory, exactly as T-9A shipped.
+  onEditSupplier?: (supplier: Supplier) => void
+}
+
+const baseColumns: GridColDef[] = [
   { field: 'name', headerName: 'Name', flex: 1, minWidth: 160 },
   { field: 'contactName', headerName: 'Contact', flex: 1, minWidth: 160 },
   { field: 'emailPhone', headerName: 'Email / Phone', flex: 1.4, minWidth: 220 },
@@ -13,9 +20,36 @@ const columns: GridColDef[] = [
 
 const containerSx = { maxWidth: 1390, mx: 'auto', px: { xs: 2, md: 4.5 }, py: 4 }
 
-function SupplierDirectory() {
+function SupplierDirectory({ onEditSupplier }: SupplierDirectoryProps = {}) {
   const { data, isPending, isError, refetch } = useSuppliers()
   const [search, setSearch] = useState('')
+
+  const columns = useMemo<GridColDef[]>(() => {
+    if (!onEditSupplier) return baseColumns
+    return [
+      ...baseColumns,
+      {
+        field: 'actions',
+        headerName: '',
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        width: 90,
+        renderCell: (params) => {
+          const supplier = params.row.supplier as Supplier
+          return (
+            <Button
+              size="small"
+              onClick={() => onEditSupplier(supplier)}
+              aria-label={`Edit ${supplier.name}`}
+            >
+              Edit
+            </Button>
+          )
+        },
+      },
+    ]
+  }, [onEditSupplier])
 
   if (isPending) {
     return (
@@ -46,6 +80,8 @@ function SupplierDirectory() {
     contactName: supplier.contactName ?? '—',
     emailPhone: [supplier.email, supplier.phone].filter(Boolean).join(' · ') || '—',
     deliveryCadence: supplier.deliveryCadence ?? '—',
+    // Carried for the Edit action's renderCell (not a visible column).
+    supplier,
   }))
 
   return (
