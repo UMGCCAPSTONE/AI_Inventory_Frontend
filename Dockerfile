@@ -14,8 +14,18 @@
 # ---- base: install deps for the client workspace ------------------------------
 FROM node:22-bookworm-slim AS base
 WORKDIR /app/client
-COPY client/package*.json ./
-RUN npm ci
+# client/.npmrc points the @umgccapstone scope at GitHub Packages; the auth token
+# is supplied at build time as a BuildKit SECRET (never baked into a layer) so
+# `npm ci` can fetch the private @umgccapstone/contracts. Provide it with:
+#   docker build --secret id=gh_token,env=GH_PKG_TOKEN ...
+# or via the compose `build.secrets` on the frontend service (T-23). The token is
+# written to a throwaway ~/.npmrc inside this single RUN and removed on success,
+# so it lives only in the secret mount, never in the image.
+COPY client/package*.json client/.npmrc ./
+RUN --mount=type=secret,id=gh_token sh -c '\
+      echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/gh_token)" > ~/.npmrc && \
+      npm ci && \
+      rm -f ~/.npmrc'
 
 # ---- dev: Vite dev server + hot reload ----------------------------------------
 FROM base AS dev
