@@ -1,7 +1,17 @@
-import { useDashboardHeader } from '../hooks'
+import { useDashboardHeader, useDashboardSummary } from '../hooks'
+import type { MetricTone } from '../types'
+
+function formatCurrency(value: number): string {
+  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+}
+
+function tone(value: number, nonZeroTone: MetricTone): MetricTone {
+  return value > 0 ? nonZeroTone : 'default'
+}
 
 function DashboardHeader() {
   const { data, isPending, isError } = useDashboardHeader()
+  const { data: summary, isPending: summaryPending, isError: summaryError } = useDashboardSummary()
 
   if (isPending) {
     return (
@@ -29,6 +39,35 @@ function DashboardHeader() {
     )
   }
 
+  const summaryCards = summary
+    ? [
+        {
+          label: 'Total Items',
+          value: String(summary.totalItems),
+          valueTone: 'default' as MetricTone,
+          helper: 'inventory records',
+        },
+        {
+          label: 'Below Par',
+          value: String(summary.lowStockCount),
+          valueTone: tone(summary.lowStockCount, 'danger'),
+          helper: 'below reorder level',
+        },
+        {
+          label: 'Expiring Soon',
+          value: String(summary.expiringSoonCount),
+          valueTone: tone(summary.expiringSoonCount, 'warning'),
+          helper: 'expire within 7 days',
+        },
+        {
+          label: 'At-Risk Value',
+          value: formatCurrency(summary.atRiskValue),
+          valueTone: tone(summary.atRiskValue, 'danger'),
+          helper: 'tied up in at-risk stock',
+        },
+      ]
+    : null
+
   return (
     <section className="dashboard-header" aria-labelledby="dashboard-heading">
       <div className="dashboard-copy">
@@ -48,23 +87,24 @@ function DashboardHeader() {
         ) : null}
       </div>
 
-      <div className="metric-panel" aria-label="Attention metrics">
-        {data.metrics.length > 0 ? (
-          data.metrics.map((metric) => (
-            <article className="metric-card" key={metric.label}>
-              <h2>{metric.label}</h2>
-              <strong className={`metric-value ${metric.valueTone ?? 'default'}`}>
-                {metric.value}
-              </strong>
-              <p>{metric.helper}</p>
+      <div className="metric-panel" aria-label="Inventory summary">
+        {summaryPending ? (
+          <p className="status-message" role="status">
+            Loading inventory summary…
+          </p>
+        ) : summaryError ? (
+          <p className="status-message danger" role="alert">
+            Could not load inventory summary. Check your connection and try again.
+          </p>
+        ) : summaryCards ? (
+          summaryCards.map((card) => (
+            <article className="metric-card" key={card.label}>
+              <h2>{card.label}</h2>
+              <strong className={`metric-value ${card.valueTone}`}>{card.value}</strong>
+              <p>{card.helper}</p>
             </article>
           ))
-        ) : (
-          <p className="status-message">
-            No metrics yet — at-risk value, waste, and margins appear once inventory data is
-            connected.
-          </p>
-        )}
+        ) : null}
       </div>
     </section>
   )

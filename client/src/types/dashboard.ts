@@ -1,3 +1,10 @@
+export type DashboardSummary = {
+  totalItems: number
+  lowStockCount: number
+  expiringSoonCount: number
+  atRiskValue: number
+}
+
 export type UrgencyTone = 'danger' | 'warning' | 'success'
 
 export type MetricTone = 'danger' | 'warning' | 'success' | 'default'

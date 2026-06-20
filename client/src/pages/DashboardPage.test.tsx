@@ -1,16 +1,94 @@
-import { describe, it } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Placeholder specs for the Dashboard page (T-6A / T-6B / T-6C).
-// All blocks are describe.skip until the page component exists.
-// Un-skip and fill in each block as the corresponding ticket merges.
+vi.mock('../services/apiClient', () => ({
+  apiClient: { get: vi.fn() },
+  setAuthHandlers: vi.fn(),
+}))
+
+import DashboardPage from './DashboardPage'
+import { apiClient } from '../services/apiClient'
+
+const getMock = vi.mocked(apiClient.get)
+
+function wrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+      {children}
+    </QueryClientProvider>
+  )
+}
+
+beforeEach(() => vi.clearAllMocks())
 
 // T-6A: Dashboard Summary Cards & Metrics
-describe.skip('DashboardPage — US-DASH-1: summary cards & metrics', () => {
-  it.todo('renders the page without crashing when mounted with mock data')
-  it.todo('displays atRiskValue, waste %, and margin from the API response — does not compute from raw inventory')
-  it.todo('shows the chef name in the welcome heading when the API provides one')
-  it.todo('shows the facts list when the API returns fact strings')
-  it.todo('renders the empty/no-metrics placeholder when the metrics array is empty')
+describe('DashboardPage — US-DASH-1: summary cards & metrics', () => {
+  it('renders the page without crashing when mounted with mock data', async () => {
+    getMock.mockResolvedValue({ totalItems: 10, lowStockCount: 2, expiringSoonCount: 1, atRiskValue: 50 })
+
+    render(<DashboardPage />, { wrapper })
+
+    await waitFor(() => {
+      expect(screen.getByText('Total Items')).toBeInTheDocument()
+    })
+  })
+
+  it('displays atRiskValue from the API response — does not compute from raw inventory', async () => {
+    getMock.mockResolvedValue({ totalItems: 5, lowStockCount: 0, expiringSoonCount: 0, atRiskValue: 123.45 })
+
+    render(<DashboardPage />, { wrapper })
+
+    await waitFor(() => {
+      expect(screen.getByText('$123.45')).toBeInTheDocument()
+    })
+    expect(getMock).toHaveBeenCalledWith('/dashboard/summary')
+    expect(getMock).not.toHaveBeenCalledWith(expect.stringContaining('/inventory'))
+  })
+
+  it('shows all four KPI cards with live values from the API', async () => {
+    getMock.mockResolvedValue({ totalItems: 42, lowStockCount: 3, expiringSoonCount: 7, atRiskValue: 250 })
+
+    render(<DashboardPage />, { wrapper })
+
+    await waitFor(() => {
+      expect(screen.getByText('42')).toBeInTheDocument()
+      expect(screen.getByText('3')).toBeInTheDocument()
+      expect(screen.getByText('7')).toBeInTheDocument()
+      expect(screen.getByText('$250.00')).toBeInTheDocument()
+    })
+  })
+
+  it('shows zero counts cleanly for empty inventory (all-zero summary, not an error)', async () => {
+    getMock.mockResolvedValue({ totalItems: 0, lowStockCount: 0, expiringSoonCount: 0, atRiskValue: 0 })
+
+    render(<DashboardPage />, { wrapper })
+
+    await waitFor(() => {
+      expect(screen.getByText('$0.00')).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('alert')).toBeNull()
+  })
+
+  it('shows a loading state while summary data is fetching', async () => {
+    getMock.mockReturnValue(new Promise(() => {}))
+
+    render(<DashboardPage />, { wrapper })
+
+    await waitFor(() => {
+      expect(screen.getByText('Loading inventory summary…')).toBeInTheDocument()
+    })
+  })
+
+  it('shows an error state if the summary API call fails', async () => {
+    getMock.mockRejectedValue(new Error('Network error'))
+
+    render(<DashboardPage />, { wrapper })
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+    })
+  })
 })
 
 // T-6B: Dashboard Urgent Alerts Section
