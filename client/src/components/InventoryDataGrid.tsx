@@ -51,9 +51,11 @@ function daysUntil(iso: string): number {
 type InventoryDataGridProps = {
   /** Wired by T-7C to open the edit flow for a row. */
   onEdit?: (item: InventoryItem) => void
+  /** Wired by T-7C to open the delete confirmation for a row. */
+  onDelete?: (item: InventoryItem) => void
 }
 
-function InventoryDataGrid({ onEdit }: InventoryDataGridProps) {
+function InventoryDataGrid({ onEdit, onDelete }: InventoryDataGridProps) {
   const [searchInput, setSearchInput] = useState('')
   const [category, setCategory] = useState<Category | undefined>(undefined)
   const [status, setStatus] = useState<InventoryStatusFilter | undefined>(undefined)
@@ -158,15 +160,20 @@ function InventoryDataGrid({ onEdit }: InventoryDataGridProps) {
         field: 'actions',
         headerName: '',
         sortable: false,
-        width: 90,
+        width: 160,
         renderCell: ({ row }) => (
-          <Button size="small" variant="outlined" onClick={() => onEdit?.(row)}>
-            Edit
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button size="small" variant="outlined" onClick={() => onEdit?.(row)}>
+              Edit
+            </Button>
+            <Button size="small" variant="outlined" color="error" onClick={() => onDelete?.(row)}>
+              Delete
+            </Button>
+          </Stack>
         ),
       },
     ],
-    [supplierById, onEdit],
+    [supplierById, onEdit, onDelete],
   )
 
   const sortModel: GridSortModel = [{ field: sort, sort: order }]

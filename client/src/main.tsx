@@ -6,6 +6,7 @@ import './index.css'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
 import { AuthProvider } from './context'
+import { ToastProvider } from './components/Toaster'
 import { logBackendHealth } from './services'
 import { theme } from './styles/theme'
 
@@ -22,9 +23,11 @@ createRoot(document.getElementById('root')!).render(
     <ThemeProvider theme={theme}>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
+          <ToastProvider>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </ToastProvider>
         </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>
