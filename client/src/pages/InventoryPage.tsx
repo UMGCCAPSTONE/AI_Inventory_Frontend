@@ -1,14 +1,18 @@
 import { useState } from 'react'
 import { Box, Button, Typography } from '@mui/material'
+import { visuallyHidden } from '@mui/utils'
 import type { InventoryItem } from '@umgccapstone/contracts'
 import { useDashboardSummary, useSuppliers } from '../hooks'
 import StatCard from '../components/StatCard'
+import StatCardSkeleton from '../components/StatCardSkeleton'
 import InventoryDataGrid from '../components/InventoryDataGrid'
 import InventoryFormModal from '../components/InventoryFormModal'
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog'
-import { ErrorState, LoadingState } from '../components/states'
+import { ErrorState } from '../components/states'
 
 type ModalState = { mode: 'add' } | { mode: 'edit'; item: InventoryItem } | null
+
+const METRIC_CARD_COUNT = 4
 
 // T-7A — Inventory page: KPI cards from GET /api/dashboard/summary + the T-7B
 // data grid. Cards render the server summary (ADR 0004), never recomputed.
@@ -57,7 +61,14 @@ function InventoryPage() {
 
       <Box sx={{ mb: 3 }} aria-label="Inventory metrics">
         {isPending ? (
-          <LoadingState label="Loading metrics…" />
+          <Box role="status" sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box component="span" sx={visuallyHidden}>
+              Loading metrics…
+            </Box>
+            {Array.from({ length: METRIC_CARD_COUNT }).map((_, index) => (
+              <StatCardSkeleton key={index} />
+            ))}
+          </Box>
         ) : isError ? (
           <ErrorState
             title="Couldn't load metrics"
