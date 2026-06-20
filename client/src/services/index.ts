@@ -1,6 +1,11 @@
 export { appConfig } from './config'
 export type { AppConfig } from './config'
-export { fetchDashboardHeader, fetchTodayDashboard, fetchDashboardSummary } from './dashboard'
+export {
+  fetchDashboardHeader,
+  fetchTodayDashboard,
+  fetchDashboardSummary,
+  fetchDashboardAlerts,
+} from './dashboard'
 export {
   fetchInventory,
   createInventoryItem,

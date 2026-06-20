@@ -7,6 +7,12 @@ vi.mock('../services/apiClient', () => ({
   setAuthHandlers: vi.fn(),
 }))
 
+vi.mock('react-router-dom', () => ({
+  Link: ({ children, to, ...props }: { children: React.ReactNode; to: string; [key: string]: unknown }) => (
+    <a href={to} {...props}>{children}</a>
+  ),
+}))
+
 import DashboardPage from './DashboardPage'
 import { apiClient } from '../services/apiClient'
 
@@ -20,12 +26,44 @@ function wrapper({ children }: { children: React.ReactNode }) {
   )
 }
 
+function makeSummary(overrides = {}) {
+  return { totalItems: 10, lowStockCount: 0, expiringSoonCount: 0, atRiskValue: 0, lastUpdatedAt: null, ...overrides }
+}
+
+function makeItem(overrides = {}) {
+  return {
+    id: 'item-1',
+    name: 'Tomatoes',
+    category: 'PRODUCE',
+    quantity: 2,
+    unit: 'kg',
+    unitCost: 5,
+    parLevel: 10,
+    expirationDate: null,
+    supplierId: null,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    isLowStock: true,
+    isExpiringSoon: false,
+    atRiskValue: 10,
+    ...overrides,
+  }
+}
+
+// DashboardPage now composes AlertsSection (T-6B), which fetches /dashboard/alerts.
+// US-DASH-1 specs mock by path so that call resolves to an empty list and the
+// summary-card assertions stay isolated from the alerts section.
+function summaryOnly(summary: unknown) {
+  return (path: string) =>
+    path === '/dashboard/summary' ? Promise.resolve(summary) : Promise.resolve([])
+}
+
 beforeEach(() => vi.clearAllMocks())
 
 // T-6A: Dashboard Summary Cards & Metrics
 describe('DashboardPage — US-DASH-1: summary cards & metrics', () => {
   it('renders the page without crashing when mounted with mock data', async () => {
-    getMock.mockResolvedValue({ totalItems: 10, lowStockCount: 2, expiringSoonCount: 1, atRiskValue: 50 })
+    getMock.mockImplementation(summaryOnly({ totalItems: 10, lowStockCount: 2, expiringSoonCount: 1, atRiskValue: 50 }))
 
     render(<DashboardPage />, { wrapper })
 
@@ -35,7 +73,7 @@ describe('DashboardPage — US-DASH-1: summary cards & metrics', () => {
   })
 
   it('displays atRiskValue from the API response — does not compute from raw inventory', async () => {
-    getMock.mockResolvedValue({ totalItems: 5, lowStockCount: 0, expiringSoonCount: 0, atRiskValue: 123.45 })
+    getMock.mockImplementation(summaryOnly({ totalItems: 5, lowStockCount: 0, expiringSoonCount: 0, atRiskValue: 123.45 }))
 
     render(<DashboardPage />, { wrapper })
 
@@ -47,7 +85,7 @@ describe('DashboardPage — US-DASH-1: summary cards & metrics', () => {
   })
 
   it('shows all four KPI cards with live values from the API', async () => {
-    getMock.mockResolvedValue({ totalItems: 42, lowStockCount: 3, expiringSoonCount: 7, atRiskValue: 250 })
+    getMock.mockImplementation(summaryOnly({ totalItems: 42, lowStockCount: 3, expiringSoonCount: 7, atRiskValue: 250 }))
 
     render(<DashboardPage />, { wrapper })
 
@@ -60,7 +98,7 @@ describe('DashboardPage — US-DASH-1: summary cards & metrics', () => {
   })
 
   it('shows zero counts cleanly for empty inventory (all-zero summary, not an error)', async () => {
-    getMock.mockResolvedValue({ totalItems: 0, lowStockCount: 0, expiringSoonCount: 0, atRiskValue: 0 })
+    getMock.mockImplementation(summaryOnly({ totalItems: 0, lowStockCount: 0, expiringSoonCount: 0, atRiskValue: 0 }))
 
     render(<DashboardPage />, { wrapper })
 
@@ -71,7 +109,9 @@ describe('DashboardPage — US-DASH-1: summary cards & metrics', () => {
   })
 
   it('shows a loading state while summary data is fetching', async () => {
-    getMock.mockReturnValue(new Promise(() => {}))
+    getMock.mockImplementation((path: string) =>
+      path === '/dashboard/summary' ? new Promise(() => {}) : Promise.resolve([]),
+    )
 
     render(<DashboardPage />, { wrapper })
 
@@ -81,7 +121,9 @@ describe('DashboardPage — US-DASH-1: summary cards & metrics', () => {
   })
 
   it('shows an error state if the summary API call fails', async () => {
-    getMock.mockRejectedValue(new Error('Network error'))
+    getMock.mockImplementation((path: string) =>
+      path === '/dashboard/summary' ? Promise.reject(new Error('Network error')) : Promise.resolve([]),
+    )
 
     render(<DashboardPage />, { wrapper })
 
@@ -92,10 +134,78 @@ describe('DashboardPage — US-DASH-1: summary cards & metrics', () => {
 })
 
 // T-6B: Dashboard Urgent Alerts Section
-describe.skip('DashboardPage — US-DASH-2: urgent alerts', () => {
-  it.todo('renders alerts for items where isExpiringSoon or atRiskValue is set in the server response')
-  it.todo('shows the empty alerts state when no items have isExpiringSoon or atRiskValue set')
-  it.todo('displays urgency labels from the server field — does not derive them from dates or quantities')
+describe('DashboardPage — US-DASH-2: urgent alerts', () => {
+  it('renders alerts for items where isExpiringSoon or isLowStock is set in the server response', async () => {
+    getMock.mockImplementation((path: string) => {
+      if (path === '/dashboard/summary') return Promise.resolve(makeSummary())
+      if (path === '/dashboard/alerts')
+        return Promise.resolve([
+          makeItem({ name: 'Tomatoes', isLowStock: true }),
+          makeItem({ id: 'item-2', name: 'Basil', isLowStock: false, isExpiringSoon: true, expirationDate: '2026-06-21T00:00:00.000Z' }),
+        ])
+      return Promise.resolve([])
+    })
+
+    render(<DashboardPage />, { wrapper })
+
+    await waitFor(() => {
+      expect(screen.getByText('Tomatoes')).toBeInTheDocument()
+      expect(screen.getByText('Basil')).toBeInTheDocument()
+    })
+  })
+
+  it('shows the empty alerts state when no items are at risk', async () => {
+    getMock.mockImplementation((path: string) => {
+      if (path === '/dashboard/summary') return Promise.resolve(makeSummary())
+      return Promise.resolve([])
+    })
+
+    render(<DashboardPage />, { wrapper })
+
+    await waitFor(() => expect(screen.getByText('No active alerts')).toBeInTheDocument())
+  })
+
+  it('displays urgency labels from the server field — does not derive them from dates or quantities', async () => {
+    getMock.mockImplementation((path: string) => {
+      if (path === '/dashboard/summary') return Promise.resolve(makeSummary())
+      if (path === '/dashboard/alerts')
+        return Promise.resolve([
+          makeItem({ isLowStock: true, isExpiringSoon: false }),
+          makeItem({ id: 'item-2', name: 'Basil', isLowStock: false, isExpiringSoon: true, expirationDate: '2026-06-21T00:00:00.000Z' }),
+        ])
+      return Promise.resolve([])
+    })
+
+    render(<DashboardPage />, { wrapper })
+
+    await waitFor(() => {
+      expect(screen.getByText('Below Par')).toBeInTheDocument()
+      expect(screen.getByText('Expiring Soon')).toBeInTheDocument()
+    })
+    expect(getMock).toHaveBeenCalledWith('/dashboard/alerts')
+  })
+
+  it('shows loading state while alerts are fetching', async () => {
+    getMock.mockImplementation((path: string) => {
+      if (path === '/dashboard/summary') return Promise.resolve(makeSummary())
+      return new Promise(() => {})
+    })
+
+    render(<DashboardPage />, { wrapper })
+
+    await waitFor(() => expect(screen.getByText('Loading alerts…')).toBeInTheDocument())
+  })
+
+  it('shows error state if the alerts API call fails', async () => {
+    getMock.mockImplementation((path: string) => {
+      if (path === '/dashboard/summary') return Promise.resolve(makeSummary())
+      return Promise.reject(new Error('Network error'))
+    })
+
+    render(<DashboardPage />, { wrapper })
+
+    await waitFor(() => expect(screen.getByText("Couldn't load alerts")).toBeInTheDocument())
+  })
 })
 
 // T-6C: Dashboard AI Recommendation Preview Cards

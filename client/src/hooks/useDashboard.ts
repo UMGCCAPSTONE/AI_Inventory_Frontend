@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
   fetchDashboardHeader,
   fetchDashboardSummary,
+  fetchDashboardAlerts,
   fetchTodayDashboard,
   queryKeys,
 } from '../services'
@@ -25,5 +26,12 @@ export function useDashboardSummary() {
   return useQuery({
     queryKey: queryKeys.dashboard.summary,
     queryFn: fetchDashboardSummary,
+  })
+}
+
+export function useDashboardAlerts() {
+  return useQuery({
+    queryKey: queryKeys.dashboard.alerts,
+    queryFn: fetchDashboardAlerts,
   })
 }
