@@ -1,4 +1,9 @@
-import type { InventoryItem, InventoryListQuery } from '@umgccapstone/contracts'
+import type {
+  CreateInventoryItemInput,
+  InventoryItem,
+  InventoryListQuery,
+  UpdateInventoryItemInput,
+} from '@umgccapstone/contracts'
 import { apiClient } from './apiClient'
 
 // Inventory list service (T-7B). Reads GET /api/inventory using the contract
@@ -34,4 +39,23 @@ export async function fetchInventory(query: InventoryListQuery): Promise<Invento
     page: Number(meta?.page ?? query.page),
     pageSize: Number(meta?.pageSize ?? query.pageSize),
   }
+}
+
+// Inventory writes (T-7C). Paths are the literal assertion unit (CONTEXT.md —
+// "API path assertion"); no route-constant layer. The server returns the full
+// item DTO with recomputed derived fields (ADR 0004); mutation hooks invalidate
+// the read queries rather than trusting any client-side recompute.
+export function createInventoryItem(input: CreateInventoryItemInput): Promise<InventoryItem> {
+  return apiClient.post<InventoryItem>('/inventory', input)
+}
+
+export function updateInventoryItem(
+  id: string,
+  input: UpdateInventoryItemInput,
+): Promise<InventoryItem> {
+  return apiClient.patch<InventoryItem>(`/inventory/${id}`, input)
+}
+
+export function deleteInventoryItem(id: string): Promise<void> {
+  return apiClient.delete<void>(`/inventory/${id}`)
 }

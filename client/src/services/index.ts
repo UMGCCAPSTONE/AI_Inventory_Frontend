@@ -1,7 +1,12 @@
 export { appConfig } from './config'
 export type { AppConfig } from './config'
 export { fetchDashboardHeader, fetchTodayDashboard, fetchDashboardSummary } from './dashboard'
-export { fetchInventory } from './inventory'
+export {
+  fetchInventory,
+  createInventoryItem,
+  updateInventoryItem,
+  deleteInventoryItem,
+} from './inventory'
 export type { InventoryPage } from './inventory'
 export { fetchSuppliers } from './suppliers'
 export { queryKeys } from './queryKeys'

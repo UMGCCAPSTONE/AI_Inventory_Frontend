@@ -29,7 +29,7 @@
 | | US-DASH-3: AI recommendation preview | `src/pages/DashboardPage.test.tsx` | ⏭ Skipped | T-6C |
 | **Inventory** | US-INV-1: Metrics & layout | `src/pages/InventoryPage.test.tsx` | ⏭ Skipped | T-7A |
 | | US-INV-2: Item grid with badges | `src/pages/InventoryPage.test.tsx` | ⏭ Skipped | T-7B |
-| | US-INV-3: Add / edit item flow | `src/pages/InventoryPage.test.tsx` | ⏭ Skipped | T-7C |
+| | US-INV-3: Add / edit / delete item flow | `src/pages/InventoryPage.test.tsx` | ✅ Active | T-7C |
 | **Suppliers** | US-SUPP-1: Directory view | `src/pages/SuppliersPage.test.tsx` | ⏭ Skipped | T-9A / T-9B |
 | | US-SUPP-2: Add supplier | `src/pages/SuppliersPage.test.tsx` | ⏭ Skipped | T-9B |
 | | US-SUPP-3: Edit supplier | `src/pages/SuppliersPage.test.tsx` | ⏭ Skipped | T-9B |

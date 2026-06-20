@@ -2,3 +2,8 @@ export { useDashboardHeader, useTodayDashboard, useDashboardSummary } from './us
 export { useInventory } from './useInventory'
 export { useSuppliers } from './useSuppliers'
 export { useDebounce } from './useDebounce'
+export {
+  useCreateInventoryItem,
+  useUpdateInventoryItem,
+  useDeleteInventoryItem,
+} from './useInventoryMutations'

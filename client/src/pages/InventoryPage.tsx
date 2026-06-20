@@ -1,8 +1,14 @@
+import { useState } from 'react'
 import { Box, Button, Typography } from '@mui/material'
-import { useDashboardSummary } from '../hooks'
+import type { InventoryItem } from '@umgccapstone/contracts'
+import { useDashboardSummary, useSuppliers } from '../hooks'
 import StatCard from '../components/StatCard'
 import InventoryDataGrid from '../components/InventoryDataGrid'
+import InventoryFormModal from '../components/InventoryFormModal'
+import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog'
 import { ErrorState, LoadingState } from '../components/states'
+
+type ModalState = { mode: 'add' } | { mode: 'edit'; item: InventoryItem } | null
 
 // T-7A — Inventory page: KPI cards from GET /api/dashboard/summary + the T-7B
 // data grid. Cards render the server summary (ADR 0004), never recomputed.
@@ -23,6 +29,10 @@ function lastUpdatedLabel(iso: string | null): string | null {
 
 function InventoryPage() {
   const { data: summary, isPending, isError, refetch } = useDashboardSummary()
+  const { data: suppliers } = useSuppliers()
+
+  const [modal, setModal] = useState<ModalState>(null)
+  const [deleteTarget, setDeleteTarget] = useState<InventoryItem | null>(null)
 
   const updated = summary ? lastUpdatedLabel(summary.lastUpdatedAt) : null
   const subline = summary
@@ -40,8 +50,9 @@ function InventoryPage() {
             {subline}
           </Typography>
         </Box>
-        {/* Placeholder — T-7C wires the add flow. */}
-        <Button variant="contained">+ Add Item</Button>
+        <Button variant="contained" onClick={() => setModal({ mode: 'add' })}>
+          + Add Item
+        </Button>
       </Box>
 
       <Box sx={{ mb: 3 }} aria-label="Inventory metrics">
@@ -68,7 +79,34 @@ function InventoryPage() {
         )}
       </Box>
 
-      <InventoryDataGrid />
+      <InventoryDataGrid
+        onEdit={(item) => setModal({ mode: 'edit', item })}
+        onDelete={(item) => setDeleteTarget(item)}
+      />
+
+      {modal?.mode === 'add' ? (
+        <InventoryFormModal
+          open
+          mode="add"
+          suppliers={suppliers ?? []}
+          onClose={() => setModal(null)}
+        />
+      ) : null}
+      {modal?.mode === 'edit' ? (
+        <InventoryFormModal
+          open
+          mode="edit"
+          item={modal.item}
+          suppliers={suppliers ?? []}
+          onClose={() => setModal(null)}
+        />
+      ) : null}
+
+      <ConfirmDeleteDialog
+        open={deleteTarget !== null}
+        item={deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+      />
     </Box>
   )
 }
