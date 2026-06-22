@@ -1,5 +1,6 @@
 export type {
   DashboardHeaderData,
+  DashboardSummary,
   HeaderMetric,
   InventoryFilter,
   InventoryItem,

@@ -1,9 +1,7 @@
 import './App.css'
 import { NavLink, Route, Routes } from 'react-router-dom'
 import { useAuth } from './context'
-import DashboardHeader from './components/DashboardHeader'
-import TodayDashboard from './components/TodayDashboard'
-import { InventoryPage, LoginPage } from './pages'
+import { DashboardPage, InventoryPage, LoginPage } from './pages'
 
 const navItems = [
   { label: 'Today', to: '/' },
@@ -12,15 +10,6 @@ const navItems = [
   { label: 'Suppliers', to: '/suppliers' },
   { label: 'Reports', to: '/reports' },
 ]
-
-function DashboardView() {
-  return (
-    <>
-      <DashboardHeader />
-      <TodayDashboard />
-    </>
-  )
-}
 
 function ComingSoon() {
   return <p style={{ padding: 24 }}>Coming soon.</p>
@@ -105,7 +94,7 @@ function App() {
 
       <main>
         <Routes>
-          <Route path="/" element={<DashboardView />} />
+          <Route path="/" element={<DashboardPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
           <Route path="*" element={<ComingSoon />} />
         </Routes>
