@@ -39,7 +39,7 @@
 | | US-MENU-4: Dismiss recommendation | `src/pages/MenuBuilderPage.test.tsx` | ⏭ Skipped | T-8B |
 | | US-MENU-5: Explanation modal | `src/pages/MenuBuilderPage.test.tsx` | ⏭ Skipped | T-8B |
 | | US-MENU-6: Empty state | `src/pages/MenuBuilderPage.test.tsx` | ⏭ Skipped | T-8A / T-8B |
-| **Reports** | US-REP-1: KPI cards | `src/pages/ReportsPage.test.tsx` | ⏭ Skipped | T-10A |
+| **Reports** | US-REP-1: KPI cards | `src/pages/ReportsPage.test.tsx` | ✅ Active | T-10A |
 | | US-REP-2: Category summary table | `src/pages/ReportsPage.test.tsx` | ⏭ Skipped | T-10B |
 | | US-REP-3: Recommendation history | `src/pages/ReportsPage.test.tsx` | ⏭ Skipped | T-10C |
 | | US-REP-4: Waste-risk breakdown | `src/pages/ReportsPage.test.tsx` | ⏭ Skipped | T-10C |
