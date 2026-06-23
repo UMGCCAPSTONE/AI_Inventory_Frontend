@@ -1,4 +1,4 @@
-import type { DashboardSummary } from '@umgccapstone/contracts'
+import type { DashboardSummary, InventoryItem } from '@umgccapstone/contracts'
 import type { DashboardHeaderData, TodayDashboardData } from '../types'
 import { apiClient } from './apiClient'
 
@@ -6,6 +6,13 @@ import { apiClient } from './apiClient'
 // Server-computed (ADR 0004); screens render these counts, never recompute them.
 export async function fetchDashboardSummary(): Promise<DashboardSummary> {
   return apiClient.get<DashboardSummary>('/dashboard/summary')
+}
+
+// At-risk items for the dashboard alerts section (T-6B).
+// Returns InventoryItem[] sorted by atRiskValue desc — server-computed flags
+// (isLowStock, isExpiringSoon) are rendered as-is, never recomputed client-side.
+export async function fetchDashboardAlerts(): Promise<InventoryItem[]> {
+  return apiClient.get<InventoryItem[]>('/dashboard/alerts') ?? []
 }
 
 // Hook seams only (T-0): feature tickets replace these bodies with real API
