@@ -1,14 +1,65 @@
-import { describe, it } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { DashboardSummary } from '@umgccapstone/contracts'
+import ReportsPage from './ReportsPage'
+import { fetchDashboardSummary } from '../services'
 
-// Placeholder specs for the Reports page (T-10A / T-10B / T-10C).
-// All blocks are describe.skip until the page component exists.
-// Un-skip and fill in each block as the corresponding ticket merges.
+vi.mock('../services', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../services')>()
+  return {
+    ...actual,
+    fetchDashboardSummary: vi.fn(),
+  }
+})
+
+const kpiFixture: DashboardSummary = {
+  totalItems: 42,
+  lowStockCount: 13,
+  expiringSoonCount: 7,
+  atRiskValue: 999.99,
+  lastUpdatedAt: null,
+}
+
+function renderPage() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <ReportsPage />
+    </QueryClientProvider>,
+  )
+}
+
+beforeEach(() => {
+  vi.mocked(fetchDashboardSummary).mockResolvedValue(kpiFixture)
+})
+
+afterEach(() => {
+  vi.clearAllMocks()
+})
 
 // T-10A: Reports — Basic KPI Cards
-describe.skip('ReportsPage — US-REP-1: KPI cards', () => {
-  it.todo('renders the page without crashing when mounted with mock report data')
-  it.todo('displays server-computed KPI values (total spend, waste %, average margin)')
-  it.todo('shows the KPI empty/no-data state when the report has no data')
+describe('ReportsPage — US-REP-1: KPI cards', () => {
+  it('renders the page without crashing when mounted with mock report data', async () => {
+    renderPage()
+    expect(await screen.findByRole('heading', { name: /reports/i })).toBeInTheDocument()
+  })
+
+  it('displays server-computed KPI values (totalItems, expiringSoonCount, atRiskValue, lowStockCount)', async () => {
+    renderPage()
+    expect(await screen.findByText('42')).toBeInTheDocument()
+    expect(screen.getByText('7')).toBeInTheDocument()
+    expect(screen.getByText('$999.99')).toBeInTheDocument()
+    expect(screen.getByText('13')).toBeInTheDocument()
+  })
+
+  it('shows the empty state when totalItems is 0', async () => {
+    vi.mocked(fetchDashboardSummary).mockResolvedValue({ ...kpiFixture, totalItems: 0 })
+    renderPage()
+    expect(
+      await screen.findByText(/no inventory items yet/i),
+    ).toBeInTheDocument()
+  })
 })
 
 // T-10B: Reports — Category Summary Table

@@ -41,3 +41,6 @@ The number of tracked inventory records (`totalItems` on the dashboard summary).
 
 ## last updated
 The newest `updatedAt` across inventory items (`lastUpdatedAt` on the dashboard summary; `null` when there are no items). Adds and edits bump it; **deletes do not** (no audit trail). Shown as the Inventory page's "Updated …" line. Avoid implying it's the *fetch* time.
+
+## Reports Page
+The page at `/reports` that surfaces inventory health KPIs. For MVP (T-10A) it reads from `DashboardSummary` via a thin `useReportKpis` hook (a swap point for a future `/reports/kpis` endpoint). The four canonical KPI card labels are: **"Total items"** (`totalItems`), **"Expiring soon"** (`expiringSoonCount`), **"At-risk value"** (`atRiskValue`), **"Low stock"** (`lowStockCount`). Use these labels exactly — do not use "total inventory value", "waste-risk summary", "below par", or "expiring item counts".
