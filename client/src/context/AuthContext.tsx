@@ -33,9 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  // Read Firebase's live currentUser, not React's `user` state: currentUser is
+  // set the moment auth resolves, before the state update re-renders the tree.
+  // Closing over `user` state left a window where the dashboard's first requests
+  // fired before the token-bearing handler re-registered — they went out with no
+  // Bearer token, the API 401'd, and onUnauthorized signed the user back out.
   const getIdToken = useCallback(async () => {
-    return user ? user.getIdToken() : null
-  }, [user])
+    return firebaseAuth?.currentUser ? firebaseAuth.currentUser.getIdToken() : null
+  }, [])
 
   const signOut = useCallback(async () => {
     if (!firebaseAuth) return
