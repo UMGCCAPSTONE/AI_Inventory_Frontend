@@ -18,4 +18,7 @@ export const queryKeys = {
   suppliers: {
     list: ['suppliers', 'list'] as const,
   },
+  reports: {
+    category: ['reports', 'category'] as const,
+  },
 } as const
