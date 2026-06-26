@@ -87,10 +87,13 @@ function SupplierForm({
 
   const submit = handleSubmit((values) => {
     if (mode === 'edit') {
+      if (Object.keys(dirtyFields).length === 0) return
       // Send only the fields the user actually changed (US-SUPP-3).
+      // values[key] is undefined when the user cleared an optional field via setValueAs;
+      // use '' so the key is present in the JSON body and the server overwrites the old value.
       const patch: UpdateSupplierInput = {}
       for (const key of Object.keys(dirtyFields) as (keyof CreateSupplierInput)[]) {
-        patch[key] = values[key]
+        patch[key] = values[key] ?? ''
       }
       onSubmit(patch)
       return
