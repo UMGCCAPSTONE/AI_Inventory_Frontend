@@ -33,6 +33,21 @@ The **frontend** for the AI/LLM Inventory Management System: authentication, the
 - **Git**
 - **Docker** (optional) — Engine ≥ 23 / Desktop ≥ 4.19, only needed for the [container path](#-docker-t-23a)
 
+## ⚡ Quickstart
+
+Just want it running? This is the happy path. **Start the [backend](https://github.com/UMGCCAPSTONE/AI_Inventory_Backend) first** (`http://localhost:3000`) — without it, the screens load but render their empty states (that's expected, not a bug).
+
+```bash
+gh auth refresh -s read:packages                                    # one-time: GitHub Packages access (see Setup)
+npm config set //npm.pkg.github.com/:_authToken="$(gh auth token)"  # cmd.exe users: see the paste form in Setup
+cd client
+npm install
+cp .env.example .env.local                                          # Windows cmd: copy .env.example .env.local
+npm run dev                                                         # → http://localhost:5173
+```
+
+Hitting a `401 Unauthorized` on `npm install`? That's the GitHub Packages auth step — see [Setup](#-setup) below for the full explanation and the Windows-friendly form.
+
 ## 🚀 Setup
 
 The app lives in [`client/`](./client).
@@ -40,13 +55,19 @@ The app lives in [`client/`](./client).
 **First-time only — GitHub Packages auth.** `client/` depends on the private `@umgccapstone/contracts` package, so `npm install` needs a GitHub token with the **`read:packages`** scope. Without it you'll get a `401 Unauthorized` on install — it looks like a git/network error, but it's auth. Set it up once:
 
 ```bash
-# simplest — reuse your existing gh login:
+# simplest — reuse your existing gh login (bash, zsh, PowerShell):
 gh auth refresh -s read:packages
 npm config set //npm.pkg.github.com/:_authToken="$(gh auth token)"
-
-# …or use a Personal Access Token (classic) with the read:packages scope:
-# npm config set //npm.pkg.github.com/:_authToken=YOUR_TOKEN
 ```
+
+> **Windows `cmd.exe`** (where `$(...)` isn't supported), or no `gh`? Print the token and paste it literally:
+>
+> ```
+> gh auth token        # copy the printed value
+> npm config set //npm.pkg.github.com/:_authToken=PASTE_TOKEN_HERE
+> ```
+>
+> Or use a **Personal Access Token (classic)** with the **`read:packages`** scope in place of the gh token.
 
 Then install:
 
