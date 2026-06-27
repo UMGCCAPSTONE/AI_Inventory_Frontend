@@ -1,8 +1,9 @@
-import { Box, Typography } from '@mui/material'
+import { Box, Divider, Typography } from '@mui/material'
 import { visuallyHidden } from '@mui/utils'
 import { useReportKpis } from '../hooks'
 import StatCard from '../components/StatCard'
 import StatCardSkeleton from '../components/StatCardSkeleton'
+import CategorySummaryTable from '../components/CategorySummaryTable'
 import { ErrorState } from '../components/states'
 
 const METRIC_CARD_COUNT = 4
@@ -52,6 +53,13 @@ function ReportsPage() {
           </Box>
         )}
       </Box>
+
+      <Divider sx={{ my: 4 }} />
+
+      <Typography variant="h5" component="h2" sx={{ mb: 2 }}>
+        Category breakdown
+      </Typography>
+      <CategorySummaryTable />
     </Box>
   )
 }

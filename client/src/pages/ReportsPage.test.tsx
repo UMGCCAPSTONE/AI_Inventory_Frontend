@@ -1,15 +1,16 @@
 import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { DashboardSummary } from '@umgccapstone/contracts'
+import type { DashboardSummary, CategorySummaryRow } from '@umgccapstone/contracts'
 import ReportsPage from './ReportsPage'
-import { fetchDashboardSummary } from '../services'
+import { fetchDashboardSummary, fetchCategoryReport } from '../services'
 
 vi.mock('../services', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../services')>()
   return {
     ...actual,
     fetchDashboardSummary: vi.fn(),
+    fetchCategoryReport: vi.fn(),
   }
 })
 
@@ -30,8 +31,14 @@ function renderPage() {
   )
 }
 
+const categoryFixture: CategorySummaryRow[] = [
+  { category: 'PRODUCE', itemCount: 6, totalValue: 120.5, lowStockCount: 1 },
+  { category: 'MEAT', itemCount: 4, totalValue: 350.0, lowStockCount: 2 },
+]
+
 beforeEach(() => {
   vi.mocked(fetchDashboardSummary).mockResolvedValue(kpiFixture)
+  vi.mocked(fetchCategoryReport).mockResolvedValue(categoryFixture)
 })
 
 afterEach(() => {
@@ -63,11 +70,27 @@ describe('ReportsPage — US-REP-1: KPI cards', () => {
 })
 
 // T-10B: Reports — Category Summary Table
-describe.skip('ReportsPage — US-REP-2: category summary', () => {
-  it.todo('renders a row for each category in the mock report response')
-  it.todo('displays server-computed per-category spend, waste, and margin fields')
-  it.todo('shows the empty-table state when the category list is empty')
-  it.todo('does not recompute any derived field — values come from the server response')
+describe('ReportsPage — US-REP-2: category summary', () => {
+  it('renders a row for each category in the mock report response', async () => {
+    renderPage()
+    expect(await screen.findByText('Produce')).toBeInTheDocument()
+    expect(screen.getByText('Meat')).toBeInTheDocument()
+  })
+
+  it('displays server-computed per-category item count, total value, and low-stock count', async () => {
+    renderPage()
+    expect(await screen.findByText('6')).toBeInTheDocument()
+    expect(screen.getByText('$120.50')).toBeInTheDocument()
+    expect(screen.getByText('$350.00')).toBeInTheDocument()
+    // low-stock count column (MEAT has 2) — the spec's third claimed field
+    expect(screen.getByText('2')).toBeInTheDocument()
+  })
+
+  it('shows the empty-table state when the category list is empty', async () => {
+    vi.mocked(fetchCategoryReport).mockResolvedValue([])
+    renderPage()
+    expect(await screen.findByText(/no category data yet/i)).toBeInTheDocument()
+  })
 })
 
 // T-10C: Reports — Recommendation History & Waste-Risk
