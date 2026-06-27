@@ -85,9 +85,18 @@ A multi-stage `Dockerfile` runs the frontend in a container — `dev` (Vite + ho
 **Run from the repo root** (where the `Dockerfile` is — *not* `client/`), and keep the trailing `.`:
 
 ```bash
-docker build --target prod -t ai_inventory_frontend --build-arg VITE_API_BASE_URL=/api .
+# The build fetches the private @umgccapstone/contracts, so pass a read:packages
+# token as a BuildKit secret (never baked into the image):
+export GH_PKG_TOKEN="$(gh auth token)"     # or a PAT with read:packages
+#   Windows PowerShell:  $env:GH_PKG_TOKEN = (gh auth token)
+
+DOCKER_BUILDKIT=1 docker build --target prod -t ai_inventory_frontend \
+  --secret id=gh_token,env=GH_PKG_TOKEN \
+  --build-arg VITE_API_BASE_URL=/api .
 docker run --rm -p 8080:80 ai_inventory_frontend          # → http://localhost:8080 (SPA only)
 ```
+
+> **Full stack?** The whole app (frontend + backend + Postgres) runs from the **backend repo's** `docker-compose.yml` (T-23) — see its README. This section builds/runs just the frontend image.
 
 > **Why `VITE_API_BASE_URL=/api`?** The build bakes in a **relative** base; at runtime nginx forwards `/api/...` to `BACKEND_ORIGIN` (default `http://backend:3000`). A variable + resolver means the container serves the SPA even when the backend is down.
 
@@ -153,7 +162,7 @@ Screens get data through typed TanStack Query hooks (the "hook seams" from ticke
 
 - **Components** — functional, PascalCase, one responsibility; business logic lives in hooks/services/utils.
 - **API base** — never hardcode URLs; read `appConfig.apiBaseUrl` (`VITE_API_BASE_URL`).
-- **Branches** — `feature/T_X_<short-name>` off `main`; PRs only, no direct commits.
+- **Branches** — `feature/T_X_<short-name>` off `dev`; PRs into `dev` only (never `main` — `main` is production), no direct commits.
 - **Before a PR** — run `npm run build` and `npm run test:run`.
 
 ## 🧭 Tech stack
