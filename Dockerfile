@@ -22,7 +22,7 @@ WORKDIR /app/client
 # written to a throwaway ~/.npmrc inside this single RUN and removed on success,
 # so it lives only in the secret mount, never in the image.
 COPY client/package*.json client/.npmrc ./
-RUN --mount=type=secret,id=gh_token sh -c '\
+RUN --mount=type=secret,id=gh_token,required=true sh -c '\
       echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/gh_token)" > ~/.npmrc && \
       npm ci && \
       rm -f ~/.npmrc'
