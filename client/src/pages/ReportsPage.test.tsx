@@ -1,8 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { DashboardSummary } from '@umgccapstone/contracts'
-import type { CategorySummaryRow } from '../types/reports'
+import type { DashboardSummary, CategorySummaryRow } from '@umgccapstone/contracts'
 import ReportsPage from './ReportsPage'
 import { fetchDashboardSummary, fetchCategoryReport } from '../services'
 
@@ -83,6 +82,8 @@ describe('ReportsPage — US-REP-2: category summary', () => {
     expect(await screen.findByText('6')).toBeInTheDocument()
     expect(screen.getByText('$120.50')).toBeInTheDocument()
     expect(screen.getByText('$350.00')).toBeInTheDocument()
+    // low-stock count column (MEAT has 2) — the spec's third claimed field
+    expect(screen.getByText('2')).toBeInTheDocument()
   })
 
   it('shows the empty-table state when the category list is empty', async () => {

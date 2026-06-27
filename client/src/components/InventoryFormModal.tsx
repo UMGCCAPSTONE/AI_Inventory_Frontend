@@ -22,23 +22,13 @@ import {
 } from '@umgccapstone/contracts'
 import { useCreateInventoryItem, useUpdateInventoryItem } from '../hooks'
 import { ApiError } from '../types/api'
+import { CATEGORY_LABELS } from '../utils/categories'
 
 // Shared add/edit form (T-7C). One MUI dialog, two modes. Validation comes
 // straight from the contract Zod schema via zodResolver (ADR 0003) so the client
 // can never submit a payload the backend rejects, and a server 400 with a
 // `field` maps back onto that exact input. The supplier list is fetched from the
 // API (T-14), never hardcoded.
-
-const CATEGORY_LABELS: Record<Category, string> = {
-  PRODUCE: 'Produce',
-  MEAT: 'Meat',
-  SEAFOOD: 'Seafood',
-  DAIRY: 'Dairy',
-  DRY_GOODS: 'Dry Goods',
-  BEVERAGE: 'Beverage',
-  FROZEN: 'Frozen',
-  OTHER: 'Other',
-}
 
 type FormValues = CreateInventoryItemInput
 

@@ -1,21 +1,11 @@
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { Box } from '@mui/material'
-import type { CategorySummaryRow } from '../types/reports'
+import type { CategorySummaryRow, Category } from '@umgccapstone/contracts'
 import { EmptyState, ErrorState } from './states'
 import { useReportCategory } from '../hooks'
+import { CATEGORY_LABELS } from '../utils/categories'
 
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
-
-const CATEGORY_LABELS: Record<string, string> = {
-  PRODUCE: 'Produce',
-  MEAT: 'Meat',
-  SEAFOOD: 'Seafood',
-  DAIRY: 'Dairy',
-  DRY_GOODS: 'Dry Goods',
-  BEVERAGE: 'Beverage',
-  FROZEN: 'Frozen',
-  OTHER: 'Other',
-}
 
 const columns: GridColDef<CategorySummaryRow>[] = [
   {
@@ -23,7 +13,7 @@ const columns: GridColDef<CategorySummaryRow>[] = [
     headerName: 'Category',
     flex: 1,
     minWidth: 120,
-    valueFormatter: (value: string) => CATEGORY_LABELS[value] ?? value,
+    valueFormatter: (value: string) => CATEGORY_LABELS[value as Category] ?? value,
   },
   {
     field: 'itemCount',

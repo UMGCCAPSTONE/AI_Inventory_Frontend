@@ -17,23 +17,13 @@ import {
 } from '@umgccapstone/contracts'
 import { useDebounce, useInventory, useSuppliers } from '../hooks'
 import { EmptyState, ErrorState } from './states'
+import { CATEGORY_LABELS } from '../utils/categories'
 
 // T-7B — Inventory DataGrid. Renders GET /api/inventory with server-side
 // debounced search, category + status filters, sort, and pagination. Low-stock
 // and expiring flags come straight from the server-computed DTO (ADR 0004); the
 // grid never recomputes them. The "urgent" (<48h) filter is intentionally out
 // of scope — see CONTEXT.md / T-12U (#38). T-7A mounts this; T-7C passes `onEdit`.
-
-const CATEGORY_LABELS: Record<Category, string> = {
-  PRODUCE: 'Produce',
-  MEAT: 'Meat',
-  SEAFOOD: 'Seafood',
-  DAIRY: 'Dairy',
-  DRY_GOODS: 'Dry Goods',
-  BEVERAGE: 'Beverage',
-  FROZEN: 'Frozen',
-  OTHER: 'Other',
-}
 
 const STATUS_OPTIONS: { value: InventoryStatusFilter; label: string }[] = [
   { value: 'low_stock', label: 'Low stock' },

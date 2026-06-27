@@ -1,4 +1,4 @@
-import type { CategorySummaryRow } from '../types/reports'
+import type { CategorySummaryRow } from '@umgccapstone/contracts'
 import { apiClient } from './apiClient'
 
 export async function fetchCategoryReport(): Promise<CategorySummaryRow[]> {
