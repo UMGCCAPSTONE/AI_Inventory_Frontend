@@ -45,7 +45,7 @@ export default function RecommendationPreviewSection() {
     <section className="recommendation-preview-section" aria-label="AI recommendation preview">
       <h2>AI Recommendations</h2>
       <div className="recommendation-grid">
-        {content.data.map((rec) => {
+        {content.data.slice(0, 3).map((rec) => {
           const avail = availabilityById.get(rec.id)
           return (
             <article key={rec.id} className="recommendation-card">

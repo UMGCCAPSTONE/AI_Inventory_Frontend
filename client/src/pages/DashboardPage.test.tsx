@@ -268,4 +268,21 @@ describe('DashboardPage — US-DASH-3: AI recommendation preview', () => {
       expect(screen.getByText(/no recommendations yet/i)).toBeInTheDocument()
     })
   })
+
+  it('renders at most 3 cards even when the API returns more than 3', async () => {
+    const manyPreviews = [
+      { id: '1', name: 'Dish One', summary: 'Summary one' },
+      { id: '2', name: 'Dish Two', summary: 'Summary two' },
+      { id: '3', name: 'Dish Three', summary: 'Summary three' },
+      { id: '4', name: 'Dish Four', summary: 'Summary four' },
+      { id: '5', name: 'Dish Five', summary: 'Summary five' },
+    ]
+    getMock.mockImplementation(t6cImpl({ previews: manyPreviews }))
+    render(<DashboardPage />, { wrapper })
+    await waitFor(() => expect(screen.getByText('Dish One')).toBeInTheDocument())
+    const buttons = screen.getAllByRole('button', { name: /go to menu builder/i })
+    expect(buttons).toHaveLength(3)
+    expect(screen.queryByText('Dish Four')).toBeNull()
+    expect(screen.queryByText('Dish Five')).toBeNull()
+  })
 })
