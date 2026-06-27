@@ -2,12 +2,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('./apiClient', () => ({ apiClient: { list: vi.fn() } }))
 
-import { fetchInventory } from './inventory'
+import { fetchAllInventory, fetchInventory } from './inventory'
 import { apiClient } from './apiClient'
 
 const listMock = vi.mocked(apiClient.list)
 
 afterEach(() => vi.clearAllMocks())
+
+// One full page of placeholder items (the list endpoint caps pageSize at 100).
+function pageOf(count: number, idPrefix: string) {
+  return Array.from({ length: count }, (_, i) => ({ id: `${idPrefix}-${i}` }))
+}
 
 describe('fetchInventory', () => {
   it('serializes all params into the /inventory query string and reads meta', async () => {
@@ -56,5 +61,48 @@ describe('fetchInventory', () => {
 
     expect(result.items).toEqual([])
     expect(result.total).toBe(0)
+  })
+})
+
+describe('fetchAllInventory', () => {
+  it('pages through every item (pageSize 100) and concatenates them', async () => {
+    // 150 total → two requests: a full page of 100, then a partial page of 50.
+    listMock
+      .mockResolvedValueOnce({ data: pageOf(100, 'a'), meta: { total: 150 } } as never)
+      .mockResolvedValueOnce({ data: pageOf(50, 'b'), meta: { total: 150 } } as never)
+
+    const items = await fetchAllInventory()
+
+    expect(items).toHaveLength(150)
+    expect(listMock).toHaveBeenCalledTimes(2)
+    expect(listMock.mock.calls[0][0]).toContain('page=1')
+    expect(listMock.mock.calls[0][0]).toContain('pageSize=100')
+    expect(listMock.mock.calls[1][0]).toContain('page=2')
+  })
+
+  it('makes a single request when everything fits on one page', async () => {
+    listMock.mockResolvedValue({ data: pageOf(20, 'a'), meta: { total: 20 } } as never)
+
+    const items = await fetchAllInventory()
+
+    expect(items).toHaveLength(20)
+    expect(listMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('returns an empty array when there are no items', async () => {
+    listMock.mockResolvedValue({ data: [], meta: { total: 0 } } as never)
+
+    await expect(fetchAllInventory()).resolves.toEqual([])
+    expect(listMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('stops on a short page even if total is unreliable', async () => {
+    // total is NaN-ish; the short-page guard must still terminate the loop.
+    listMock.mockResolvedValue({ data: pageOf(10, 'a'), meta: { total: Number.NaN } } as never)
+
+    const items = await fetchAllInventory()
+
+    expect(items).toHaveLength(10)
+    expect(listMock).toHaveBeenCalledTimes(1)
   })
 })

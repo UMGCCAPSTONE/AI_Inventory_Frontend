@@ -8,6 +8,7 @@ export {
 } from './dashboard'
 export {
   fetchInventory,
+  fetchAllInventory,
   createInventoryItem,
   updateInventoryItem,
   deleteInventoryItem,

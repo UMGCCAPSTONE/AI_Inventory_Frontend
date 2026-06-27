@@ -8,11 +8,13 @@ import { ApiError } from '../types/api'
 import {
   createInventoryItem,
   deleteInventoryItem,
+  fetchAllInventory,
   fetchDashboardSummary,
   fetchInventory,
   fetchSuppliers,
   updateInventoryItem,
 } from '../services'
+import { downloadCsv } from '../utils/inventoryCsv'
 
 // The page renders the MUI X DataGrid (T-7B), which needs these in jsdom.
 class ResizeObserverStub {
@@ -41,11 +43,20 @@ vi.mock('../services', async (importOriginal) => {
     ...actual,
     fetchDashboardSummary: vi.fn(),
     fetchInventory: vi.fn(),
+    fetchAllInventory: vi.fn(),
     fetchSuppliers: vi.fn(),
     createInventoryItem: vi.fn(),
     updateInventoryItem: vi.fn(),
     deleteInventoryItem: vi.fn(),
   }
+})
+
+// Mock only the DOM-touching download; the real buildInventoryCsv still runs so
+// the test exercises the actual CSV the page produces (jsdom has no
+// URL.createObjectURL).
+vi.mock('../utils/inventoryCsv', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../utils/inventoryCsv')>()
+  return { ...actual, downloadCsv: vi.fn() }
 })
 
 const summary: DashboardSummary = {
@@ -291,5 +302,52 @@ describe('InventoryPage — US-INV-3: add / edit / delete item', () => {
     expect(await within(dialog).findByText(/in use by: margherita pizza/i)).toBeInTheDocument()
     // The dialog stays open so the row is not removed.
     expect(within(dialog).getByRole('heading', { name: /delete item/i })).toBeInTheDocument()
+  })
+})
+
+// T-7S: CSV Export (stretch)
+describe('InventoryPage — US-INV-6: CSV export', () => {
+  beforeEach(() => {
+    vi.mocked(fetchDashboardSummary).mockResolvedValue(summary)
+    vi.mocked(fetchInventory).mockResolvedValue({ items: [item], total: 1, page: 1, pageSize: 20 })
+    vi.mocked(fetchSuppliers).mockResolvedValue([supplier])
+  })
+
+  it('exports all items to a date-stamped CSV and confirms via toast', async () => {
+    vi.mocked(fetchAllInventory).mockResolvedValue([item])
+    renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: /export csv/i }))
+
+    await waitFor(() => expect(fetchAllInventory).toHaveBeenCalled())
+    expect(downloadCsv).toHaveBeenCalledTimes(1)
+    const [filename, csv] = vi.mocked(downloadCsv).mock.calls[0]
+    expect(filename).toMatch(/^inventory-\d{4}-\d{2}-\d{2}\.csv$/)
+    // Header matches the displayed grid columns (US-INV-6 QA).
+    expect(csv.split('\r\n')[0]).toBe('Item,Stock,Expiry,At-risk,Par / Reorder,Supplier')
+    expect(csv).toContain('Roma tomato')
+    expect(await screen.findByText(/exported 1 item to csv/i)).toBeInTheDocument()
+  })
+
+  it('still downloads a header-only CSV and guides the user when inventory is empty', async () => {
+    vi.mocked(fetchAllInventory).mockResolvedValue([])
+    renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: /export csv/i }))
+
+    await waitFor(() => expect(downloadCsv).toHaveBeenCalledTimes(1))
+    const csv = vi.mocked(downloadCsv).mock.calls[0][1]
+    expect(csv.split('\r\n')).toHaveLength(1) // header only
+    expect(await screen.findByText(/no inventory items to export yet/i)).toBeInTheDocument()
+  })
+
+  it('shows an error toast and does not download when the export fetch fails', async () => {
+    vi.mocked(fetchAllInventory).mockRejectedValue(new Error('network'))
+    renderPage()
+
+    fireEvent.click(await screen.findByRole('button', { name: /export csv/i }))
+
+    expect(await screen.findByText(/could not export inventory/i)).toBeInTheDocument()
+    expect(downloadCsv).not.toHaveBeenCalled()
   })
 })

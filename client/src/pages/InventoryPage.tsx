@@ -1,13 +1,16 @@
 import { useState } from 'react'
-import { Box, Button, Typography } from '@mui/material'
+import { Box, Button, Stack, Typography } from '@mui/material'
 import { visuallyHidden } from '@mui/utils'
 import type { InventoryItem } from '@umgccapstone/contracts'
 import { useDashboardSummary, useSuppliers } from '../hooks'
+import { fetchAllInventory } from '../services'
+import { buildInventoryCsv, downloadCsv, inventoryCsvFilename } from '../utils/inventoryCsv'
 import StatCard from '../components/StatCard'
 import StatCardSkeleton from '../components/StatCardSkeleton'
 import InventoryDataGrid from '../components/InventoryDataGrid'
 import InventoryFormModal from '../components/InventoryFormModal'
 import ConfirmDeleteDialog from '../components/ConfirmDeleteDialog'
+import { useToast } from '../components/Toaster'
 import { ErrorState } from '../components/states'
 
 type ModalState = { mode: 'add' } | { mode: 'edit'; item: InventoryItem } | null
@@ -34,9 +37,31 @@ function lastUpdatedLabel(iso: string | null): string | null {
 function InventoryPage() {
   const { data: summary, isPending, isError, refetch } = useDashboardSummary()
   const { data: suppliers } = useSuppliers()
+  const toast = useToast()
 
   const [modal, setModal] = useState<ModalState>(null)
   const [deleteTarget, setDeleteTarget] = useState<InventoryItem | null>(null)
+  const [isExporting, setIsExporting] = useState(false)
+
+  // T-7S — CSV export. Pulls the full inventory (paged behind the scenes), not
+  // just the grid's current page, then builds + downloads the file. Suppliers are
+  // already cached by useSuppliers above and reused to resolve names/cadence.
+  async function handleExport() {
+    setIsExporting(true)
+    try {
+      const items = await fetchAllInventory()
+      downloadCsv(inventoryCsvFilename(), buildInventoryCsv(items, suppliers ?? []))
+      toast.success(
+        items.length > 0
+          ? `Exported ${items.length} item${items.length === 1 ? '' : 's'} to CSV.`
+          : 'No inventory items to export yet — add items to populate the file.',
+      )
+    } catch {
+      toast.error('Could not export inventory. Please try again.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   const updated = summary ? lastUpdatedLabel(summary.lastUpdatedAt) : null
   const subline = summary
@@ -54,9 +79,14 @@ function InventoryPage() {
             {subline}
           </Typography>
         </Box>
-        <Button variant="contained" onClick={() => setModal({ mode: 'add' })}>
-          + Add Item
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button variant="outlined" onClick={handleExport} disabled={isExporting}>
+            {isExporting ? 'Exporting…' : 'Export CSV'}
+          </Button>
+          <Button variant="contained" onClick={() => setModal({ mode: 'add' })}>
+            + Add Item
+          </Button>
+        </Stack>
       </Box>
 
       <Box sx={{ mb: 3 }} aria-label="Inventory metrics">

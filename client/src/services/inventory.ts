@@ -41,6 +41,31 @@ export async function fetchInventory(query: InventoryListQuery): Promise<Invento
   }
 }
 
+// The list endpoint caps pageSize at 100 (contract inventory.ts), so "export
+// all items" (T-7S) can't be a single request — page through until we've
+// collected `total`. Unfiltered + name-sorted so the export is the full,
+// deterministically ordered dataset regardless of the grid's current view.
+const EXPORT_PAGE_SIZE = 100
+
+export async function fetchAllInventory(): Promise<InventoryItem[]> {
+  const all: InventoryItem[] = []
+  let page = 1
+  // Guard against a misbehaving `total` (e.g. NaN) by also stopping when a page
+  // comes back short — a full page implies there may be more.
+  for (;;) {
+    const result = await fetchInventory({
+      sort: 'name',
+      order: 'asc',
+      page,
+      pageSize: EXPORT_PAGE_SIZE,
+    })
+    all.push(...result.items)
+    if (all.length >= result.total || result.items.length < EXPORT_PAGE_SIZE) break
+    page += 1
+  }
+  return all
+}
+
 // Inventory writes (T-7C). Paths are the literal assertion unit (CONTEXT.md —
 // "API path assertion"); no route-constant layer. The server returns the full
 // item DTO with recomputed derived fields (ADR 0004); mutation hooks invalidate
