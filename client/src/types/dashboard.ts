@@ -44,30 +44,21 @@ export type InventoryItem = {
   highlighted?: boolean
 }
 
-export type SpecialIngredient = {
-  icon: string
-  name: string
-  amount: string
-}
-
-export type Special = {
-  name: string
-  description: string
-  foodCost: string
-  suggestedPrice: string
-  margin: string
-  usageLabel: string
-  ingredients: SpecialIngredient[]
-  topPick?: boolean
-}
-
 export type TodayDashboardData = {
   inventory: {
     filters: InventoryFilter[]
     items: InventoryItem[]
   }
-  specials: {
-    intro: string | null
-    items: Special[]
-  }
+}
+
+export type RecommendationPreviewContent = {
+  id: string
+  name: string
+  summary: string
+}
+
+export type RecommendationAvailability = {
+  id: string
+  isAvailable: boolean
+  limitingIngredient: string | null
 }

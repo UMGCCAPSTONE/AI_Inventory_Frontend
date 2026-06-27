@@ -4,7 +4,13 @@
 A `describe.skip` / `it.todo` block that names a user-story behaviour without containing any assertions or render calls. The test body is written by the page ticket (T-6/T-7/T-8/T-9/T-10) when the component exists. The prose description is the durable artefact; it survives prop renames and interface changes.
 
 ## Dashboard Page
-The single React component (`DashboardPage`) that owns the dashboard layout and composes `DashboardHeader`, `TodayDashboard`, and any sections added by T-6A/B/C. Introduced by T-6A. `App.tsx` renders `<DashboardPage />` rather than individual dashboard sub-components directly.
+The single React component (`DashboardPage`) that owns the dashboard layout and composes `DashboardHeader`, `TodayDashboard`, and any sections added by T-6A/B/C. Introduced by T-6A. T-6C adds `RecommendationPreviewSection` as a sibling of `TodayDashboard`. `App.tsx` renders `<DashboardPage />` rather than individual dashboard sub-components directly.
+
+## recommendation preview
+A lightweight card shown on the Dashboard (up to 3) summarising an AI-generated dish recommendation. Combines a **content snapshot** (`name`, `summary`; sourced from `GET /dashboard/recommendations/preview`) with a **live availability payload** (`isAvailable`, `limitingIngredient`; sourced from `GET /menu/availability`). Availability is re-fetched when inventory changes; content is not — the two queries are independent and invalidated separately. The card's CTA navigates to the Menu Builder. Do not call these "specials" (retired T-0 scaffold term). Distinct from a full *recommendation* (T-8), which adds food cost, suggested price, margin, ingredients, and accept/dismiss actions.
+
+## recommendation
+An AI-generated dish suggestion produced by the backend and surfaced in the Menu Builder (T-8). Contains the full detail set: `name`, `summary`, `foodCost`, `suggestedPrice`, `margin`, `ingredients`, `reasoning`, and a `status` (`pending | accepted | dismissed`). The Dashboard shows only a *recommendation preview* — a lightweight subset with no pricing or actions.
 
 ## coverage matrix
 The file `docs/test-coverage-matrix.md` committed to the frontend repo. It is the **living reference** — updated as each page ticket un-skips its specs. Distinct from the **Test Plan deliverable**, which is submitted to github.com/UMGCCAPSTONE/CourseDeliverables. When a testing milestone is reached, copy the coverage summary from `npm run test:coverage` into the deliverable.
@@ -44,3 +50,6 @@ The newest `updatedAt` across inventory items (`lastUpdatedAt` on the dashboard 
 
 ## Reports Page
 The page at `/reports` that surfaces inventory health KPIs. For MVP (T-10A) it reads from `DashboardSummary` via a thin `useReportKpis` hook (a swap point for a future `/reports/kpis` endpoint). The four canonical KPI card labels are: **"Total items"** (`totalItems`), **"Expiring soon"** (`expiringSoonCount`), **"At-risk value"** (`atRiskValue`), **"Low stock"** (`lowStockCount`). Use these labels exactly — do not use "total inventory value", "waste-risk summary", "below par", or "expiring item counts".
+
+## category total value
+The total dollar value of all inventory items in a category: `sum(quantity × unitCost)` across every item in that category. Computed in the frontend service layer from API-provided fields — this is arithmetic aggregation, not a business-rule recomputation prohibited by ADR 0004. Distinct from *at-risk value* (which is `isAtRisk ? quantity × unitCost : 0` and is server-computed). The column label in the category summary table is **"Total value"**.
