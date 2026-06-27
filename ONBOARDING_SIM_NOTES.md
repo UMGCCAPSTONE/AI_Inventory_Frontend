@@ -60,5 +60,21 @@ trips. The stack runs; the friction is in branch selection and one auth-command 
 - Consider a one-line "backend must be running" callout near the top of the Run section (partially covered by Quickstart now).
 - Decide whether the `read:packages` gate is acceptable for graders, or whether to publish contracts publicly
   / vendor them — that's a team decision, bigger than a README edit.
-- A separate (unrelated) thread: a **500 error** was seen on one expected function on `dev` *before* the repo
-  refresh — needs reproduction against the freshly-running stack; not a README issue.
+## The `/api/dashboard/summary` 500 — REPRODUCED & ROOT-CAUSED (2026-06-27)
+- Reproduced on the clean `dev` stack: `GET /api/dashboard/summary` → 500
+  `TypeError: Cannot read properties of undefined (reading 'findUnique')`
+  at `readInventoryWatermark` (`src/lib/inventory-watermark.ts:27`) ← `src/routes/dashboard.ts:37`.
+- **NOT a code bug.** Schema has `model InventoryMutation` (schema.prisma:164), the migration
+  `20260619174648_add_inventory_mutation_watermark` exists, the DB table is migrated, and the code is correct.
+- **Root cause: a STALE generated Prisma client inside the container** — `prisma.inventoryMutation` was
+  `undefined` (0 `InventoryMutation` refs in the container's `node_modules/.prisma/client`). The container
+  image's `prisma generate` layer came from a Docker **build cache** predating the watermark migration
+  (survived the file-system wipe because Docker cache/volumes aren't in the project folder). This is why the
+  user's earlier file-only refresh didn't clear the 500.
+- **Fix (applied, non-destructive):** `docker compose -f docker-compose.dev.yml exec backend npx prisma generate`
+  then `... restart backend` → endpoint now 200. The documented heavier fix is `npm run dev:rebuild`
+  (clears volumes + rebuilds) followed by `prisma:migrate` + `db:seed`.
+- **Grader impact: likely LOCAL only.** A clean machine with no Docker cache builds the client fresh against
+  the current schema and won't hit this. Same class as the README's `dev:rebuild` "stale image/volume after a
+  schema change" gotcha. Worth one `--no-cache` build to confirm a grader's fresh build is clean.
+- The two 404s (`/api/menu-items`, `/api/recommendations`) are the deferred AI tickets — expected, not bugs.
