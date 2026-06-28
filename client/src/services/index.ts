@@ -5,7 +5,9 @@ export {
   fetchTodayDashboard,
   fetchDashboardSummary,
   fetchDashboardAlerts,
+  fetchRecommendationPreviews,
 } from './dashboard'
+export { fetchRecommendationAvailability } from './menu'
 export {
   fetchInventory,
   fetchAllInventory,

@@ -1,6 +1,8 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+const mockNavigate = vi.fn()
 
 vi.mock('../services/apiClient', () => ({
   apiClient: { get: vi.fn() },
@@ -8,6 +10,7 @@ vi.mock('../services/apiClient', () => ({
 }))
 
 vi.mock('react-router-dom', () => ({
+  useNavigate: () => mockNavigate,
   Link: ({ children, to, ...props }: { children: React.ReactNode; to: string; [key: string]: unknown }) => (
     <a href={to} {...props}>{children}</a>
   ),
@@ -209,9 +212,77 @@ describe('DashboardPage — US-DASH-2: urgent alerts', () => {
 })
 
 // T-6C: Dashboard AI Recommendation Preview Cards
-describe.skip('DashboardPage — US-DASH-3: AI recommendation preview', () => {
-  it.todo('renders recommendation preview cards from the mock API response')
-  it.todo('displays server-computed availability and limiting-ingredient fields on each card')
-  it.todo('navigates to the Menu Builder when a recommendation card is clicked')
-  it.todo('shows the empty specials state when the recommendations list is empty')
+describe('DashboardPage — US-DASH-3: AI recommendation preview', () => {
+  const contentFixture = [
+    { id: '1', name: 'Spaghetti Carbonara', summary: 'Classic Italian pasta with eggs and pancetta' },
+    { id: '2', name: 'Veggie Risotto', summary: 'Seasonal vegetables with arborio rice' },
+  ]
+  const availabilityFixture = [
+    { id: '1', isAvailable: true, limitingIngredient: null },
+    { id: '2', isAvailable: false, limitingIngredient: 'Arborio rice' },
+  ]
+
+  function t6cImpl(overrides: { previews?: unknown; availability?: unknown } = {}) {
+    const previews = 'previews' in overrides ? overrides.previews : contentFixture
+    const availability = 'availability' in overrides ? overrides.availability : availabilityFixture
+    return (path: string) => {
+      if (path === '/dashboard/summary') return Promise.resolve(makeSummary())
+      if (path === '/dashboard/alerts') return Promise.resolve([])
+      if (path === '/dashboard/recommendations/preview') return Promise.resolve(previews)
+      if (path === '/menu/availability') return Promise.resolve(availability)
+      return Promise.resolve([])
+    }
+  }
+
+  it('renders recommendation preview cards from the mock API response', async () => {
+    getMock.mockImplementation(t6cImpl())
+    render(<DashboardPage />, { wrapper })
+    await waitFor(() => {
+      expect(screen.getByText('Spaghetti Carbonara')).toBeInTheDocument()
+      expect(screen.getByText('Veggie Risotto')).toBeInTheDocument()
+    })
+  })
+
+  it('displays server-computed availability and limiting-ingredient fields on each card', async () => {
+    getMock.mockImplementation(t6cImpl())
+    render(<DashboardPage />, { wrapper })
+    await waitFor(() => {
+      expect(screen.getByText('Available')).toBeInTheDocument()
+      expect(screen.getByText('Not available')).toBeInTheDocument()
+      expect(screen.getByText('Arborio rice')).toBeInTheDocument()
+    })
+  })
+
+  it('navigates to the Menu Builder when a recommendation card CTA is clicked', async () => {
+    getMock.mockImplementation(t6cImpl())
+    render(<DashboardPage />, { wrapper })
+    const buttons = await screen.findAllByRole('button', { name: /go to menu builder/i })
+    fireEvent.click(buttons[0])
+    expect(mockNavigate).toHaveBeenCalledWith('/menu')
+  })
+
+  it('shows the empty state when the recommendations list is empty', async () => {
+    getMock.mockImplementation(t6cImpl({ previews: [] }))
+    render(<DashboardPage />, { wrapper })
+    await waitFor(() => {
+      expect(screen.getByText(/no recommendations yet/i)).toBeInTheDocument()
+    })
+  })
+
+  it('renders at most 3 cards even when the API returns more than 3', async () => {
+    const manyPreviews = [
+      { id: '1', name: 'Dish One', summary: 'Summary one' },
+      { id: '2', name: 'Dish Two', summary: 'Summary two' },
+      { id: '3', name: 'Dish Three', summary: 'Summary three' },
+      { id: '4', name: 'Dish Four', summary: 'Summary four' },
+      { id: '5', name: 'Dish Five', summary: 'Summary five' },
+    ]
+    getMock.mockImplementation(t6cImpl({ previews: manyPreviews }))
+    render(<DashboardPage />, { wrapper })
+    await waitFor(() => expect(screen.getByText('Dish One')).toBeInTheDocument())
+    const buttons = screen.getAllByRole('button', { name: /go to menu builder/i })
+    expect(buttons).toHaveLength(3)
+    expect(screen.queryByText('Dish Four')).toBeNull()
+    expect(screen.queryByText('Dish Five')).toBeNull()
+  })
 })

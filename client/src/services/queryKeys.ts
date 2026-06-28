@@ -9,6 +9,10 @@ export const queryKeys = {
     today: ['dashboard', 'today'] as const,
     summary: ['dashboard', 'summary'] as const,
     alerts: ['dashboard', 'alerts'] as const,
+    recommendations: ['dashboard', 'recommendations'] as const,
+  },
+  menu: {
+    availability: ['menu', 'availability'] as const,
   },
   inventory: {
     // The query object is part of the key so each search/filter/sort/page

@@ -1,6 +1,6 @@
 # Frontend Test Coverage Matrix
 
-**Last updated:** 2026-06-16  
+**Last updated:** 2026-06-26  
 **Ticket:** T-20B — Frontend Test Coverage (placeholder specs for upcoming MVP pages)  
 **Harness:** Vitest + React Testing Library + jsdom (T-20A)
 
@@ -26,7 +26,7 @@
 | | US-AUTH-3: Disabled when Firebase not configured | `src/pages/LoginPage.test.tsx` | ✅ Active | T-5 |
 | **Dashboard** | US-DASH-1: Summary cards & metrics | `src/pages/DashboardPage.test.tsx` | ⏭ Skipped | T-6A |
 | | US-DASH-2: Urgent alerts section | `src/pages/DashboardPage.test.tsx` | ⏭ Skipped | T-6B |
-| | US-DASH-3: AI recommendation preview | `src/pages/DashboardPage.test.tsx` | ⏭ Skipped | T-6C |
+| | US-DASH-3: AI recommendation preview | `src/pages/DashboardPage.test.tsx` | ✅ Active | T-6C |
 | **Inventory** | US-INV-1: Metrics & layout | `src/pages/InventoryPage.test.tsx` | ⏭ Skipped | T-7A |
 | | US-INV-2: Item grid with badges | `src/pages/InventoryPage.test.tsx` | ⏭ Skipped | T-7B |
 | | US-INV-3: Add / edit / delete item flow | `src/pages/InventoryPage.test.tsx` | ✅ Active | T-7C |

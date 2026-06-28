@@ -4,6 +4,7 @@ import {
   fetchDashboardSummary,
   fetchDashboardAlerts,
   fetchTodayDashboard,
+  fetchRecommendationPreviews,
   queryKeys,
 } from '../services'
 
@@ -33,5 +34,12 @@ export function useDashboardAlerts() {
   return useQuery({
     queryKey: queryKeys.dashboard.alerts,
     queryFn: fetchDashboardAlerts,
+  })
+}
+
+export function useRecommendationPreviews() {
+  return useQuery({
+    queryKey: queryKeys.dashboard.recommendations,
+    queryFn: fetchRecommendationPreviews,
   })
 }

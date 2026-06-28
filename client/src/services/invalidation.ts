@@ -9,9 +9,12 @@ export type WriteKey = 'inventory.write' | 'supplier.create' | 'supplier.update'
 
 // An inventory add/edit/delete (T-7C) stales every inventory list (all
 // search/filter/sort/page combos — invalidated by the ['inventory'] prefix) and
-// the dashboard reads whose server-computed counts depend on inventory. T-10B
-// adds the category report (queryKeys.reports.category) so it re-fetches after
-// any inventory write; menu-availability joins this list when that screen lands.
+// the dashboard reads whose server-computed counts depend on inventory.
+// `menu.availability` is also invalidated (ADR 0008) because ingredient stock
+// changes affect whether a dish can be made. Content snapshots
+// (`dashboard.recommendations`) are NOT invalidated — they are editorial, not
+// inventory-derived. T-10B adds queryKeys.reports.category so it re-fetches
+// after any inventory write.
 //
 // Supplier writes (T-9B) only need `suppliers.list`: the inventory grid resolves
 // `supplierId -> name` through the same `useSuppliers` query, so refreshing that
@@ -22,6 +25,7 @@ export const writeInvalidationMap: Record<WriteKey, readonly (readonly unknown[]
     queryKeys.dashboard.summary,
     queryKeys.dashboard.header,
     queryKeys.dashboard.today,
+    queryKeys.menu.availability,
     queryKeys.reports.category,
   ],
   'supplier.create': [queryKeys.suppliers.list],

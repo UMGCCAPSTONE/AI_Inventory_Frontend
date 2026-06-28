@@ -1,4 +1,5 @@
-export { useDashboardHeader, useDashboardSummary, useDashboardAlerts, useTodayDashboard } from './useDashboard'
+export { useDashboardHeader, useDashboardSummary, useDashboardAlerts, useTodayDashboard, useRecommendationPreviews } from './useDashboard'
+export { useRecommendationAvailability } from './useMenu'
 export { useReportKpis } from './useReportKpis'
 export { useReportCategory } from './useReportCategory'
 export { useInventory } from './useInventory'

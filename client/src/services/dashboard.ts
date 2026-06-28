@@ -1,5 +1,5 @@
 import type { DashboardSummary, InventoryItem } from '@umgccapstone/contracts'
-import type { DashboardHeaderData, TodayDashboardData } from '../types'
+import type { DashboardHeaderData, RecommendationPreviewContent, TodayDashboardData } from '../types'
 import { apiClient } from './apiClient'
 
 // Inventory/dashboard KPI snapshot (T-7A) — real call to GET /api/dashboard/summary.
@@ -34,9 +34,9 @@ export async function fetchTodayDashboard(): Promise<TodayDashboardData> {
       filters: [],
       items: [],
     },
-    specials: {
-      intro: null,
-      items: [],
-    },
   }
+}
+
+export async function fetchRecommendationPreviews(): Promise<RecommendationPreviewContent[]> {
+  return apiClient.get<RecommendationPreviewContent[]>('/dashboard/recommendations/preview')
 }

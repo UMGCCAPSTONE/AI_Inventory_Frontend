@@ -5,8 +5,8 @@ export type {
   InventoryFilter,
   InventoryItem,
   MetricTone,
-  Special,
-  SpecialIngredient,
+  RecommendationAvailability,
+  RecommendationPreviewContent,
   TodayDashboardData,
   UrgencyTone,
 } from './dashboard'
