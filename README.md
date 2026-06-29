@@ -6,7 +6,7 @@
 
 [![Node](https://img.shields.io/badge/Node-%E2%89%A5%2022-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![MUI](https://img.shields.io/badge/MUI-9-007FFF?style=for-the-badge&logo=mui&logoColor=white)](https://mui.com/)
 [![Firebase](https://img.shields.io/badge/Firebase-Auth-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
@@ -281,10 +281,13 @@ nginx.conf.template     Serves the app + reverse-proxies /api
 package.json            Root wrapper — forwards a few scripts into client/
 client/
   src/
-    components/         Reusable UI (e.g. DashboardHeader, TodayDashboard)
+    pages/              Route-level screens (DashboardPage, InventoryPage, …)
+    components/         Reusable UI (e.g. DashboardHeader, InventoryDataGrid)
+    context/            React context providers (AuthContext)
     hooks/              TanStack Query hooks (one per screen)
     services/           apiClient, config, query keys, fetch functions, health probe
     types/              Shared TypeScript types + API response shapes
+    utils/              Helper functions
     styles/             MUI theme
   vite.config.ts        Vite + Vitest config
 docs/adr/               Architecture Decision Records (MADR)
@@ -297,7 +300,7 @@ docs/adr/               Architecture Decision Records (MADR)
 Screens never call `fetch` directly and never use mock data. Everything goes through one typed path:
 
 1. **A screen calls a hook** — typed TanStack Query hooks in `client/src/hooks`, one per screen.
-2. **The hook calls a fetch function** in `client/src/services`. *(These currently return empty data; feature tickets fill in the real calls.)*
+2. **The hook calls a fetch function** in `client/src/services` — typed functions (`dashboard.ts`, `inventory.ts`, `suppliers.ts`, `reports.ts`) that hit the real backend endpoints through `apiClient`.
 3. **The fetch function uses `apiClient`** (`services/apiClient.ts`) — the **only** place API `fetch` happens. It attaches the Firebase token and unwraps the `{ data }` / `{ error }` envelope into a typed result or a thrown `ApiError`.
 4. **Every screen renders four states**: loading, empty, error, success (see [ADR 0005](./docs/adr/)).
 
