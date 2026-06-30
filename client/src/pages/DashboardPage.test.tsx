@@ -286,3 +286,45 @@ describe('DashboardPage — US-DASH-3: AI recommendation preview', () => {
     expect(screen.queryByText('Dish Five')).toBeNull()
   })
 })
+
+// T-42: Dashboard (Today) layout — mockup grid (KPI row + Alerts | AI preview)
+describe('DashboardPage — T-42: layout grid', () => {
+  function layoutImpl(path: string) {
+    if (path === '/dashboard/summary')
+      return Promise.resolve(makeSummary({ totalItems: 9, lowStockCount: 8, expiringSoonCount: 2, atRiskValue: 120 }))
+    if (path === '/dashboard/alerts')
+      return Promise.resolve([
+        makeItem({ name: 'Basil', isLowStock: false, isExpiringSoon: true, expirationDate: '2026-07-01T00:00:00.000Z' }),
+      ])
+    if (path === '/dashboard/recommendations/preview')
+      return Promise.resolve([{ id: '1', name: 'Branzino Special', summary: 'Uses branzino + basil' }])
+    if (path === '/menu/availability')
+      return Promise.resolve([{ id: '1', isAvailable: true, limitingIngredient: null }])
+    return Promise.resolve([])
+  }
+
+  it('composes the KPI cards, urgent alerts, and recommendation preview on one page', async () => {
+    getMock.mockImplementation(layoutImpl)
+    render(<DashboardPage />, { wrapper })
+    await waitFor(() => {
+      expect(screen.getByText('Total Items')).toBeInTheDocument() // KPI row
+      expect(screen.getByText('Basil')).toBeInTheDocument() // alerts column
+      expect(screen.getByText('Branzino Special')).toBeInTheDocument() // preview column
+    })
+  })
+
+  it('places alerts and the recommendation preview inside the two-column container', async () => {
+    getMock.mockImplementation(layoutImpl)
+    render(<DashboardPage />, { wrapper })
+    const columns = await screen.findByTestId('dashboard-columns')
+    expect(columns).toContainElement(screen.getByLabelText('Inventory alerts'))
+    expect(columns).toContainElement(screen.getByLabelText('AI recommendation preview'))
+  })
+
+  it('no longer renders the unwired "Current inventory" panel (TodayDashboard retired — ADR 0009)', async () => {
+    getMock.mockImplementation(layoutImpl)
+    render(<DashboardPage />, { wrapper })
+    await waitFor(() => expect(screen.getByText('Total Items')).toBeInTheDocument())
+    expect(screen.queryByText('Current inventory')).toBeNull()
+  })
+})
