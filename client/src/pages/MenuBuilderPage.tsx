@@ -11,9 +11,12 @@ import {
   DialogTitle,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from '@mui/material'
 import type { MenuItem, RecommendationStatus } from '@umgccapstone/contracts'
+import type { RecommendationScope } from '../services'
 import {
   useAllInventory,
   useArchiveMenuItem,
@@ -71,6 +74,8 @@ function MenuBuilderPage() {
   const [removeTarget, setRemoveTarget] = useState<MenuItem | null>(null)
   const [menuSearch, setMenuSearch] = useState('')
   const [showAllMenu, setShowAllMenu] = useState(false)
+  // Which inventory the generator draws from (#66): at-risk stock or everything.
+  const [scope, setScope] = useState<RecommendationScope>('at-risk')
 
   const generate = useGenerateRecommendations()
   const recommendations = useRecommendations()
@@ -107,12 +112,27 @@ function MenuBuilderPage() {
   const generateButton = (
     <Button
       variant="contained"
-      onClick={() => generate.mutate()}
+      onClick={() => generate.mutate(scope)}
       disabled={generate.isPending}
       startIcon={generate.isPending ? <CircularProgress size={16} color="inherit" /> : undefined}
     >
       {generate.isPending ? 'Generating…' : 'Generate recommendations'}
     </Button>
+  )
+
+  const scopeToggle = (
+    <ToggleButtonGroup
+      size="small"
+      exclusive
+      value={scope}
+      onChange={(_, next: RecommendationScope | null) => {
+        if (next) setScope(next)
+      }}
+      aria-label="Generate from"
+    >
+      <ToggleButton value="at-risk">At-risk stock</ToggleButton>
+      <ToggleButton value="full">Full inventory</ToggleButton>
+    </ToggleButtonGroup>
   )
 
   const emptyCopy: Record<RecFilter, { title: string; description: string }> = {
@@ -144,7 +164,12 @@ function MenuBuilderPage() {
             {specialsCount} AI-suggested {specialsCount === 1 ? 'special' : 'specials'}
           </Typography>
         </Box>
-        <Stack direction="row" spacing={1}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ flexWrap: 'wrap', gap: 1, justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
+        >
+          {scopeToggle}
           <Button variant="outlined" onClick={() => setAddDishOpen(true)}>
             + Add Dish
           </Button>

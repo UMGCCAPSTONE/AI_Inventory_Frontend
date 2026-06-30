@@ -115,7 +115,22 @@ describe('MenuBuilderPage — US-MENU-1: page layout & generate', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /generate recommendations/i }))
 
-    await waitFor(() => expect(postMock).toHaveBeenCalledWith('/recommendations/generate'))
+    await waitFor(() =>
+      expect(postMock).toHaveBeenCalledWith('/recommendations/generate?scope=at-risk'),
+    )
+  })
+
+  it('generates from full inventory when the Full inventory scope is selected (T-72/#66)', async () => {
+    respondWith({})
+    postMock.mockResolvedValue([])
+    render(<MenuBuilderPage />, { wrapper })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Full inventory' }))
+    fireEvent.click(screen.getByRole('button', { name: /generate recommendations/i }))
+
+    await waitFor(() =>
+      expect(postMock).toHaveBeenCalledWith('/recommendations/generate?scope=full'),
+    )
   })
 
   it('shows a loading state while generation is in flight', async () => {

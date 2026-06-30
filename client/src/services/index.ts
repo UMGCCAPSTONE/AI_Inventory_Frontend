@@ -19,6 +19,7 @@ export {
   generateRecommendations,
   updateRecommendationStatus,
 } from './recommendations'
+export type { RecommendationScope } from './recommendations'
 export {
   fetchInventory,
   fetchAllInventory,
