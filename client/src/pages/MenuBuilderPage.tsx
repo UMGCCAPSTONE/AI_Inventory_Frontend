@@ -170,10 +170,10 @@ function MenuBuilderPage() {
           sx={{ flexWrap: 'wrap', gap: 1, justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
         >
           {scopeToggle}
+          {generateButton}
           <Button variant="outlined" onClick={() => setAddDishOpen(true)}>
             + Add Dish
           </Button>
-          {generateButton}
         </Stack>
       </Stack>
 

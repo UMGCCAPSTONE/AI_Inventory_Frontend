@@ -1,5 +1,11 @@
-import type { Recommendation, RecommendationStatus } from '@umgccapstone/contracts'
+import type {
+  Recommendation,
+  RecommendationScope,
+  RecommendationStatus,
+} from '@umgccapstone/contracts'
 import { apiClient } from './apiClient'
+
+export type { RecommendationScope }
 
 // Recommendations service (T-8, Menu/Recommendation API). The recommendation DTO
 // carries a content snapshot (name, explanation, ingredientsUsed) plus live,
@@ -12,13 +18,6 @@ import { apiClient } from './apiClient'
 export async function fetchRecommendations(): Promise<Recommendation[]> {
   return (await apiClient.get<Recommendation[]>('/recommendations')) ?? []
 }
-
-// Which inventory the generator may draw from (issue #66). 'at-risk' (default)
-// focuses on expiring/low stock for waste reduction; 'full' opens up the whole
-// in-stock inventory (still prioritising at-risk). Sent as a query param; the
-// backend defaults to 'at-risk' if omitted. Typed locally until the 0.9.0
-// contract (which exports RecommendationScope) is published to the frontend.
-export type RecommendationScope = 'at-risk' | 'full'
 
 // Generate a fresh set of recommendations (US-MENU-1). The engine reads current
 // stock + the saved menu server-side; `scope` chooses the ingredient pool.

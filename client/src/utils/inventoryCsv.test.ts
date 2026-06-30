@@ -33,6 +33,7 @@ function makeItem(overrides: Partial<InventoryItem> = {}): InventoryItem {
 const supplier: Supplier = {
   id: 'sup-1',
   name: 'Fresh Farms',
+  totalSpend: 0,
   deliveryCadence: 'weekly',
   createdAt: '2026-06-01T00:00:00Z',
   updatedAt: '2026-06-01T00:00:00Z',
