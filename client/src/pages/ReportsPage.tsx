@@ -1,9 +1,13 @@
-import { Box, Divider, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { visuallyHidden } from '@mui/utils'
 import { useReportKpis } from '../hooks'
 import StatCard from '../components/StatCard'
 import StatCardSkeleton from '../components/StatCardSkeleton'
-import CategorySummaryTable from '../components/CategorySummaryTable'
+import ReportCard from '../components/ReportCard'
+import CategoryDonutChart from '../components/CategoryDonutChart'
+import TopDishesByPrice from '../components/TopDishesByPrice'
+import RecommendationHistoryList from '../components/RecommendationHistoryList'
+import WasteRiskList from '../components/WasteRiskList'
 import { ErrorState } from '../components/states'
 
 const METRIC_CARD_COUNT = 4
@@ -19,7 +23,7 @@ function ReportsPage() {
         Reports
       </Typography>
 
-      <Box aria-label="KPI metrics">
+      <Box aria-label="KPI metrics" sx={{ mb: 4 }}>
         {isPending ? (
           <Box role="status" sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             <Box component="span" sx={visuallyHidden}>
@@ -54,12 +58,27 @@ function ReportsPage() {
         )}
       </Box>
 
-      <Divider sx={{ my: 4 }} />
-
-      <Typography variant="h5" component="h2" sx={{ mb: 2 }}>
-        Category breakdown
-      </Typography>
-      <CategorySummaryTable />
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 3,
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+          alignItems: 'stretch',
+        }}
+      >
+        <ReportCard title="Category breakdown">
+          <CategoryDonutChart />
+        </ReportCard>
+        <ReportCard title="Top dishes by price">
+          <TopDishesByPrice />
+        </ReportCard>
+        <ReportCard title="Recommendation history">
+          <RecommendationHistoryList />
+        </ReportCard>
+        <ReportCard title="Waste-risk summary">
+          <WasteRiskList />
+        </ReportCard>
+      </Box>
     </Box>
   )
 }
