@@ -16,17 +16,22 @@ function initials(name: string): string {
     .toUpperCase()
 }
 
-// Status for a special, from server-computed availability (ADR 0004). The
-// "uses expiring stock" badge waits on `usesExpiringItems` on the MenuItem DTO
-// (backend #66) and is intentionally omitted until then.
+// Status for a special, from server-computed fields (ADR 0004): unavailable →
+// limited/low stock; available-but-uses-expiring → "Use expiring stock";
+// otherwise ready.
 function dishStatus(item: MenuItem): { label: string; bg: string; color: string } {
-  if (item.isAvailable) return { label: 'Ready to make', bg: 'var(--sage-soft)', color: 'var(--sage)' }
-  const limiting = item.ingredients.find((l) => l.inventoryItemId === item.limitingIngredientId)?.name
-  return {
-    label: limiting ? `Limited by ${limiting}` : 'Low stock',
-    bg: 'var(--amber-soft)',
-    color: '#7c5a12',
+  if (!item.isAvailable) {
+    const limiting = item.ingredients.find((l) => l.inventoryItemId === item.limitingIngredientId)?.name
+    return {
+      label: limiting ? `Limited by ${limiting}` : 'Low stock',
+      bg: 'var(--amber-soft)',
+      color: '#7c5a12',
+    }
   }
+  if (item.usesExpiringItems) {
+    return { label: 'Use expiring stock', bg: 'var(--amber-soft)', color: '#7c5a12' }
+  }
+  return { label: 'Ready to make', bg: 'var(--sage-soft)', color: 'var(--sage)' }
 }
 
 // Dashboard "Tonight's Specials" carousel. A horizontal strip of the dishes the

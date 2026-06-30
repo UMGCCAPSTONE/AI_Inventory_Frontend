@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type Dispatch, type SetStateAction } from 'react'
 import {
   Box,
   Button,
@@ -15,8 +15,9 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
-import type { MenuItem, RecommendationStatus } from '@umgccapstone/contracts'
+import type { MenuCategory, MenuItem, RecommendationStatus } from '@umgccapstone/contracts'
 import type { RecommendationScope } from '../services'
+import { MENU_CATEGORIES, MENU_CATEGORY_LABELS } from '../utils/menuCategories'
 import {
   useAllInventory,
   useArchiveMenuItem,
@@ -52,9 +53,8 @@ const cardGrid = {
 // Section heading style — Fraunces display, matching the redesign mockups.
 const sectionTitleSx = { fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 26 } as const
 
-// Current-menu list is shown newest-first and capped, with a "See more" toggle.
-// (The mockup's per-category soft cap of 6 needs MenuItem.category from #66; until
-// then we cap the flat list the same way.)
+// Current menu groups dishes by category, each capped (soft cap) with a per-group
+// "See all" toggle; newest dishes first within a category.
 const MENU_CAP = 6
 
 // Initial specials filter from the URL (?tab=saved|dismissed), so the dashboard
@@ -73,7 +73,9 @@ function MenuBuilderPage() {
   const [addDishOpen, setAddDishOpen] = useState(false)
   const [removeTarget, setRemoveTarget] = useState<MenuItem | null>(null)
   const [menuSearch, setMenuSearch] = useState('')
-  const [showAllMenu, setShowAllMenu] = useState(false)
+  // Selected category chips (empty = show all); categories expanded past the cap.
+  const [selectedCats, setSelectedCats] = useState<Set<MenuCategory>>(new Set())
+  const [expandedCats, setExpandedCats] = useState<Set<MenuCategory>>(new Set())
   // Which inventory the generator draws from (#66): at-risk stock or everything.
   const [scope, setScope] = useState<RecommendationScope>('at-risk')
 
@@ -92,16 +94,39 @@ function MenuBuilderPage() {
     })
   }
 
+  function toggleInSet<T>(setState: Dispatch<SetStateAction<Set<T>>>, value: T) {
+    setState((prev) => {
+      const next = new Set(prev)
+      if (next.has(value)) next.delete(value)
+      else next.add(value)
+      return next
+    })
+  }
+
   const allRecs = recommendations.data ?? []
-  // Newest dishes first (most recent at the top).
-  const activeMenu = (menuItems.data ?? [])
-    .filter((item) => item.status === 'ACTIVE')
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const activeMenu = (menuItems.data ?? []).filter((item) => item.status === 'ACTIVE')
   const menuQuery = menuSearch.trim().toLowerCase()
-  const filteredMenu = menuQuery
+  const searchedMenu = menuQuery
     ? activeMenu.filter((item) => item.name.toLowerCase().includes(menuQuery))
     : activeMenu
-  const visibleMenu = showAllMenu ? filteredMenu : filteredMenu.slice(0, MENU_CAP)
+  // Category chip counts come from the full menu (stable, not search-narrowed).
+  const countByCategory = new Map<MenuCategory, number>()
+  for (const item of activeMenu) {
+    countByCategory.set(item.category, (countByCategory.get(item.category) ?? 0) + 1)
+  }
+  const presentCategories = MENU_CATEGORIES.filter((c) => countByCategory.has(c))
+  const categoriesToShow = selectedCats.size
+    ? presentCategories.filter((c) => selectedCats.has(c))
+    : presentCategories
+  // Grouped dishes (newest-first within a category); drop empty groups (e.g. under search).
+  const menuGroups = categoriesToShow
+    .map((category) => ({
+      category,
+      dishes: searchedMenu
+        .filter((d) => d.category === category)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    }))
+    .filter((g) => g.dishes.length > 0)
   // Subtitle count: the AI-generated queue (PROPOSED). Accepted dishes are now
   // menu items and are counted as such, not double-counted as specials.
   const specialsCount = allRecs.filter((r) => r.status === 'PROPOSED').length
@@ -235,8 +260,11 @@ function MenuBuilderPage() {
       </Box>
 
       <Box component="section" aria-label="Current menu" sx={{ mt: 5 }}>
-        <Typography component="h2" sx={{ ...sectionTitleSx, mb: 2 }}>
+        <Typography component="h2" sx={{ ...sectionTitleSx }}>
           Current menu
+        </Typography>
+        <Typography variant="body2" color="text.secondary" gutterBottom>
+          Grouped by category — choose categories to filter; up to {MENU_CAP} dishes shown per group.
         </Typography>
         {menuItems.isPending ? (
           <LoadingState label="Loading menu…" />
@@ -255,41 +283,79 @@ function MenuBuilderPage() {
               value={menuSearch}
               onChange={(e) => setMenuSearch(e.target.value)}
               slotProps={{ htmlInput: { 'aria-label': 'Search dishes' } }}
-              sx={{ mb: 2, maxWidth: 380 }}
+              sx={{ mt: 2, mb: 2, maxWidth: 380, display: 'block' }}
             />
-            {filteredMenu.length === 0 ? (
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ mb: 3, flexWrap: 'wrap', gap: 1 }}
+              aria-label="Category filters"
+            >
+              {presentCategories.map((c) => {
+                const selected = selectedCats.has(c)
+                return (
+                  <Chip
+                    key={c}
+                    label={`${MENU_CATEGORY_LABELS[c]} ${countByCategory.get(c)}`}
+                    onClick={() => toggleInSet(setSelectedCats, c)}
+                    color={selected ? 'primary' : 'default'}
+                    variant={selected ? 'filled' : 'outlined'}
+                  />
+                )
+              })}
+              {selectedCats.size ? (
+                <Chip label="Clear" variant="outlined" onClick={() => setSelectedCats(new Set())} />
+              ) : null}
+            </Stack>
+
+            {menuGroups.length === 0 ? (
               <EmptyState
                 title="No dishes match your search"
                 description="Try a different name or clear the search."
               />
             ) : (
-              <>
-                <Box sx={cardGrid}>
-                  {visibleMenu.map((item) => (
-                    <MenuItemCard
-                      key={item.id}
-                      item={item}
-                      onRemove={() => setRemoveTarget(item)}
-                      onToggleSpecial={() =>
-                        updateMenuItem.mutate({ id: item.id, input: { isSpecial: !item.isSpecial } })
-                      }
-                      busy={
-                        (archiveMenuItem.isPending && archiveMenuItem.variables === item.id) ||
-                        (updateMenuItem.isPending && updateMenuItem.variables?.id === item.id)
-                      }
-                    />
-                  ))}
-                </Box>
-                {filteredMenu.length > MENU_CAP ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                    <Button onClick={() => setShowAllMenu((open) => !open)}>
-                      {showAllMenu
-                        ? 'See less'
-                        : `See more (${filteredMenu.length - MENU_CAP})`}
-                    </Button>
-                  </Box>
-                ) : null}
-              </>
+              <Stack spacing={4}>
+                {menuGroups.map(({ category, dishes }) => {
+                  const expanded = expandedCats.has(category)
+                  const shown = expanded ? dishes : dishes.slice(0, MENU_CAP)
+                  return (
+                    <Box key={category} component="section" aria-label={MENU_CATEGORY_LABELS[category]}>
+                      <Typography component="h3" sx={{ fontWeight: 600, fontSize: 18, mb: 1.5 }}>
+                        {MENU_CATEGORY_LABELS[category]}{' '}
+                        <Box component="span" sx={{ color: 'text.secondary', fontWeight: 400 }}>
+                          · {dishes.length}
+                        </Box>
+                      </Typography>
+                      <Box sx={cardGrid}>
+                        {shown.map((item) => (
+                          <MenuItemCard
+                            key={item.id}
+                            item={item}
+                            onRemove={() => setRemoveTarget(item)}
+                            onToggleSpecial={() =>
+                              updateMenuItem.mutate({
+                                id: item.id,
+                                input: { isSpecial: !item.isSpecial },
+                              })
+                            }
+                            busy={
+                              (archiveMenuItem.isPending && archiveMenuItem.variables === item.id) ||
+                              (updateMenuItem.isPending && updateMenuItem.variables?.id === item.id)
+                            }
+                          />
+                        ))}
+                      </Box>
+                      {dishes.length > MENU_CAP ? (
+                        <Box sx={{ mt: 1.5 }}>
+                          <Button onClick={() => toggleInSet(setExpandedCats, category)}>
+                            {expanded ? 'See less' : `See all ${dishes.length}`}
+                          </Button>
+                        </Box>
+                      ) : null}
+                    </Box>
+                  )
+                })}
+              </Stack>
             )}
           </>
         )}

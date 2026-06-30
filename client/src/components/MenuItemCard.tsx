@@ -26,6 +26,7 @@ function MenuItemCard({ item, onRemove, onToggleSpecial, busy = false }: MenuIte
     ingredients,
     isAvailable,
     isSpecial,
+    usesExpiringItems,
     limitingIngredientId,
     foodCost,
     suggestedPrice,
@@ -97,6 +98,22 @@ function MenuItemCard({ item, onRemove, onToggleSpecial, busy = false }: MenuIte
               label={isAvailable ? 'Available' : 'Unavailable'}
               color={isAvailable ? 'success' : 'default'}
             />
+            {usesExpiringItems ? (
+              <Box
+                component="span"
+                sx={{
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  px: 1,
+                  py: 0.4,
+                  borderRadius: 999,
+                  bgcolor: 'var(--amber-soft)',
+                  color: '#7c5a12',
+                }}
+              >
+                Uses expiring items
+              </Box>
+            ) : null}
             {isSpecial ? <Chip size="small" color="warning" label="Special" /> : null}
           </Stack>
           {!isAvailable && limitingName ? (

@@ -60,6 +60,8 @@ function makeMenuItem(overrides = {}) {
   return {
     id: 'm1',
     name: 'House Salad',
+    category: 'MAIN',
+    usesExpiringItems: false,
     isSpecial: false,
     status: 'ACTIVE',
     ingredients: [],
@@ -321,7 +323,14 @@ describe('MenuBuilderPage — current menu section', () => {
     expect(screen.queryByText('Old Special')).toBeNull()
   })
 
-  it('caps the current menu at 6 (newest first) with a See more toggle (T-72)', async () => {
+  it('shows the "Uses expiring items" badge on a menu card when set (T-72)', async () => {
+    respondWith({ menu: [makeMenuItem({ id: 'm1', name: 'House Salad', usesExpiringItems: true })] })
+    render(<MenuBuilderPage />, { wrapper })
+
+    expect(await screen.findByText('Uses expiring items')).toBeInTheDocument()
+  })
+
+  it('caps each category at 6 (newest first) with a See all toggle (T-72)', async () => {
     const items = Array.from({ length: 8 }, (_, i) =>
       makeMenuItem({ id: `m${i}`, name: `Dish ${i}`, createdAt: `2026-01-0${i + 1}T00:00:00.000Z` }),
     )
@@ -333,7 +342,7 @@ describe('MenuBuilderPage — current menu section', () => {
     expect(screen.queryByText('Dish 1')).toBeNull()
     expect(screen.queryByText('Dish 0')).toBeNull()
 
-    fireEvent.click(screen.getByRole('button', { name: /see more \(2\)/i }))
+    fireEvent.click(screen.getByRole('button', { name: /see all 8/i }))
 
     expect(await screen.findByText('Dish 0')).toBeInTheDocument()
     expect(screen.getByText('Dish 1')).toBeInTheDocument()
