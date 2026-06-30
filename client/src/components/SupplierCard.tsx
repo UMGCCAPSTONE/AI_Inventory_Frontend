@@ -1,6 +1,7 @@
-import { Avatar, Box, Button, Chip, Typography } from '@mui/material'
+import { Avatar, Box, Button, Typography } from '@mui/material'
 import type { Supplier } from '@umgccapstone/contracts'
 import type { SupplierStatus } from '../types'
+import FadedChip from './FadedChip'
 
 type Props = {
   supplier: Supplier & { status?: SupplierStatus; nextDelivery?: string }
@@ -68,12 +69,13 @@ export default function SupplierCard({ supplier, onView, onEdit }: Props) {
       </Box>
 
       {supplier.status ? (
-        <Chip
-          size="small"
-          label={STATUS_LABEL[supplier.status]}
-          color={STATUS_COLOR[supplier.status]}
-          sx={{ flexShrink: 0 }}
-        />
+        <Box sx={{ flexShrink: 0 }}>
+          <FadedChip
+            label={STATUS_LABEL[supplier.status]}
+            color={STATUS_COLOR[supplier.status]}
+            minWidth={92}
+          />
+        </Box>
       ) : null}
 
       {supplier.nextDelivery ? (
