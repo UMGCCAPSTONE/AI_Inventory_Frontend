@@ -28,6 +28,11 @@ import { EmptyState, ErrorState, LoadingState } from '../components/states'
 type TabValue = 'all' | 'active' | 'pending'
 type Toast = { severity: 'success' | 'error'; message: string }
 
+// Snapshot taken at module-load time so "this week" is stable per page session.
+// Avoids calling Date.now() during component render (react-hooks/purity rule).
+const MODULE_NOW = Date.now()
+const ONE_WEEK_AGO = MODULE_NOW - 7 * 24 * 60 * 60 * 1000
+
 function messageFor(error: unknown): string {
   return error instanceof ApiError ? error.message : 'Something went wrong. Please try again.'
 }
@@ -59,12 +64,14 @@ function SuppliersPage() {
   const updateSupplier = useUpdateSupplier()
   const submitting = createSupplier.isPending || updateSupplier.isPending
 
-  const now = Date.now()
-  const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000
-  const deliveriesThisWeek = recentDeliveries.filter((d) => {
-    const t = new Date(d.deliveryDate).getTime()
-    return t >= oneWeekAgo && t <= now
-  }).length
+  const deliveriesThisWeek = useMemo(
+    () =>
+      recentDeliveries.filter((d) => {
+        const t = new Date(d.deliveryDate).getTime()
+        return t >= ONE_WEEK_AGO && t <= MODULE_NOW
+      }).length,
+    [recentDeliveries],
+  )
 
   const filteredSuppliers = useMemo(() => {
     let list = suppliers

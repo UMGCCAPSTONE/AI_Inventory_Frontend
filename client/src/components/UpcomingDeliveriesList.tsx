@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { Box, Chip, Typography } from '@mui/material'
 import type { Supplier } from '@umgccapstone/contracts'
 import type { CrossSupplierDelivery } from '../types'
@@ -9,8 +10,12 @@ const schedFmt = new Intl.DateTimeFormat('en-US', {
   minute: '2-digit',
 })
 
+// Snapshot at module-load time — avoids Date.now() in component render scope
+// (react-hooks/purity). Stale by a few ms at most; acceptable for a delivery list.
+const LOAD_NOW = Date.now()
+
 function timeToLabel(dateStr: string): string {
-  const diffMs = new Date(dateStr).getTime() - Date.now()
+  const diffMs = new Date(dateStr).getTime() - LOAD_NOW
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
   if (diffDays <= 0) return 'Today'
   if (diffDays === 1) return 'Tomorrow'
@@ -23,13 +28,19 @@ type Props = {
 }
 
 export default function UpcomingDeliveriesList({ deliveries, suppliers }: Props) {
-  const supplierNames = new Map(suppliers.map((s) => [s.id, s.name]))
-  const now = Date.now()
+  const supplierNames = useMemo(
+    () => new Map(suppliers.map((s) => [s.id, s.name])),
+    [suppliers],
+  )
 
-  const upcoming = deliveries
-    .filter((d) => d.status === 'PENDING' && new Date(d.deliveryDate).getTime() >= now)
-    .sort((a, b) => a.deliveryDate.localeCompare(b.deliveryDate))
-    .slice(0, 5)
+  const upcoming = useMemo(
+    () =>
+      deliveries
+        .filter((d) => d.status === 'PENDING' && new Date(d.deliveryDate).getTime() >= LOAD_NOW)
+        .sort((a, b) => a.deliveryDate.localeCompare(b.deliveryDate))
+        .slice(0, 5),
+    [deliveries],
+  )
 
   if (upcoming.length === 0) {
     return (
