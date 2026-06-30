@@ -4,10 +4,16 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { Supplier } from '@umgccapstone/contracts'
 import SuppliersPage from './SuppliersPage'
-import { fetchSuppliers, createSupplier, updateSupplier, fetchSupplierDeliveries } from '../services/suppliers'
+import {
+  fetchSuppliers,
+  createSupplier,
+  updateSupplier,
+  fetchSupplierDeliveries,
+  fetchRecentDeliveries,
+} from '../services/suppliers'
 
-// Stub @mui/x-data-grid (same module-resolution issue as SupplierDirectory.test)
-// but honor renderCell so the per-row Edit action is present and clickable.
+// Stub @mui/x-data-grid — still needed for SupplierDeliveryHistory's DataGrid
+// that renders inside the drawer when a supplier's "View" button is clicked.
 vi.mock('@mui/x-data-grid', () => ({
   DataGrid: ({
     rows,
@@ -42,12 +48,14 @@ vi.mock('../services/suppliers', () => ({
   createSupplier: vi.fn(),
   updateSupplier: vi.fn(),
   fetchSupplierDeliveries: vi.fn(),
+  fetchRecentDeliveries: vi.fn(),
 }))
 
 const mockFetch = vi.mocked(fetchSuppliers)
 const mockCreate = vi.mocked(createSupplier)
 const mockUpdate = vi.mocked(updateSupplier)
 const mockFetchDeliveries = vi.mocked(fetchSupplierDeliveries)
+const mockFetchRecent = vi.mocked(fetchRecentDeliveries)
 
 const suppliers: Supplier[] = [
   {
@@ -86,6 +94,10 @@ beforeEach(() => {
   mockCreate.mockReset()
   mockUpdate.mockReset()
   mockFetchDeliveries.mockReset()
+  mockFetchRecent.mockReset()
+  // Seed cross-supplier deliveries with an empty array by default so all tests
+  // that don't care about the sidebar widgets stay green without extra setup.
+  mockFetchRecent.mockResolvedValue([])
 })
 
 describe('SuppliersPage — US-SUPP-1: supplier directory view', () => {

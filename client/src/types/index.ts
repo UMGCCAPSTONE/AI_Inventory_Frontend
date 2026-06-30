@@ -13,4 +13,4 @@ export type {
 
 export type { ApiEnvelope, ApiErrorBody, ApiMeta } from './api'
 export { ApiError } from './api'
-export type { Delivery, DeliveryLineItem } from './suppliers'
+export type { Delivery, DeliveryLineItem, CrossSupplierDelivery, SupplierStatus, DeliveryStatus } from './suppliers'

@@ -5,6 +5,7 @@ import type {
 } from '@umgccapstone/contracts'
 import {
   createSupplier,
+  fetchRecentDeliveries,
   fetchSupplierDeliveries,
   fetchSuppliers,
   invalidateAfterWrite,
@@ -51,5 +52,16 @@ export function useSupplierDeliveries(supplierId: string | undefined) {
       : (['suppliers', 'deliveries', 'none'] as const),
     queryFn: () => fetchSupplierDeliveries(supplierId!),
     enabled: !!supplierId,
+  })
+}
+
+// Cross-supplier recent deliveries query (T-9S mockup). Powers the Recent
+// Orders table, Spend by Supplier chart, and Upcoming Deliveries sidebar on
+// the Supplier Network page. Gracefully returns [] if the backend endpoint
+// is not yet live.
+export function useRecentDeliveries() {
+  return useQuery({
+    queryKey: queryKeys.suppliers.recentDeliveries,
+    queryFn: fetchRecentDeliveries,
   })
 }

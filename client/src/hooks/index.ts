@@ -8,7 +8,7 @@ export {
 export { useReportKpis } from './useReportKpis'
 export { useReportCategory } from './useReportCategory'
 export { useInventory, useAllInventory } from './useInventory'
-export { useSuppliers, useCreateSupplier, useUpdateSupplier, useSupplierDeliveries } from './useSuppliers'
+export { useSuppliers, useCreateSupplier, useUpdateSupplier, useSupplierDeliveries, useRecentDeliveries } from './useSuppliers'
 export { useDebounce } from './useDebounce'
 export {
   useCreateInventoryItem,

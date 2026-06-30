@@ -1,20 +1,31 @@
-import { useState } from 'react'
-import { Alert, Box, Button, Snackbar } from '@mui/material'
+import { useMemo, useState } from 'react'
+import {
+  Alert,
+  Box,
+  Button,
+  Paper,
+  Snackbar,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
+} from '@mui/material'
 import type {
   CreateSupplierInput,
   Supplier,
   UpdateSupplierInput,
 } from '@umgccapstone/contracts'
 import { ApiError } from '../types/api'
+import { useCreateSupplier, useRecentDeliveries, useSuppliers, useUpdateSupplier } from '../hooks'
+import RecentOrdersTable from '../components/RecentOrdersTable'
+import SupplierCard from '../components/SupplierCard'
 import SupplierDeliveryHistory from '../components/SupplierDeliveryHistory'
-import SupplierDirectory from '../components/SupplierDirectory'
 import SupplierForm from '../components/SupplierForm'
-import { useCreateSupplier, useUpdateSupplier } from '../hooks'
+import SupplierSpendChart from '../components/SupplierSpendChart'
+import UpcomingDeliveriesList from '../components/UpcomingDeliveriesList'
+import { EmptyState, ErrorState, LoadingState } from '../components/states'
 
-// Suppliers page (T-9B). Wraps the T-9A directory with an "Add supplier" action
-// and a create/edit modal, and surfaces success/error feedback via a Snackbar.
-// First mutation screen in the app; a shared toast is a later refactor.
-
+type TabValue = 'all' | 'active' | 'pending'
 type Toast = { severity: 'success' | 'error'; message: string }
 
 function messageFor(error: unknown): string {
@@ -27,10 +38,46 @@ function SuppliersPage() {
   const [historySupplier, setHistorySupplier] = useState<Supplier | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [toast, setToast] = useState<Toast | null>(null)
+  const [activeTab, setActiveTab] = useState<TabValue>('all')
+  const [search, setSearch] = useState('')
+
+  const {
+    data: suppliers = [],
+    isPending: suppliersLoading,
+    isError: suppliersError,
+    refetch: refetchSuppliers,
+  } = useSuppliers()
+
+  const {
+    data: recentDeliveries = [],
+    isPending: deliveriesLoading,
+    isError: deliveriesError,
+    refetch: refetchDeliveries,
+  } = useRecentDeliveries()
 
   const createSupplier = useCreateSupplier()
   const updateSupplier = useUpdateSupplier()
   const submitting = createSupplier.isPending || updateSupplier.isPending
+
+  const now = Date.now()
+  const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000
+  const deliveriesThisWeek = recentDeliveries.filter((d) => {
+    const t = new Date(d.deliveryDate).getTime()
+    return t >= oneWeekAgo && t <= now
+  }).length
+
+  const filteredSuppliers = useMemo(() => {
+    let list = suppliers
+    if (search.trim()) {
+      list = list.filter((s) => s.name.toLowerCase().includes(search.trim().toLowerCase()))
+    }
+    if (activeTab === 'active') {
+      list = list.filter((s) => (s as Supplier & { status?: string }).status === 'ACTIVE')
+    } else if (activeTab === 'pending') {
+      list = list.filter((s) => (s as Supplier & { status?: string }).status === 'ORDER_DUE')
+    }
+    return list
+  }, [suppliers, search, activeTab])
 
   function openAdd() {
     setEditing(null)
@@ -62,27 +109,183 @@ function SuppliersPage() {
     }
   }
 
+  const statsLabel = suppliersLoading
+    ? 'Loading…'
+    : [
+        `${suppliers.length} supplier${suppliers.length !== 1 ? 's' : ''}`,
+        deliveriesThisWeek > 0
+          ? `${deliveriesThisWeek} deliver${deliveriesThisWeek !== 1 ? 'ies' : 'y'} this week`
+          : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+
   return (
-    <Box component="section" aria-label="Suppliers">
+    <Box
+      component="section"
+      aria-label="Suppliers"
+      sx={{ maxWidth: 1390, mx: 'auto', px: { xs: 2, md: 4.5 }, py: 4 }}
+    >
+      {/* Page header */}
       <Box
         sx={{
           display: 'flex',
-          justifyContent: 'flex-end',
-          maxWidth: 1390,
-          mx: 'auto',
-          px: { xs: 2, md: 4.5 },
-          pt: 4,
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          mb: 4,
         }}
       >
-        <Button variant="contained" onClick={openAdd}>
-          Add supplier
+        <Box>
+          <Typography variant="h3" component="h1" sx={{ fontWeight: 700, lineHeight: 1.1 }}>
+            Supplier network.
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            {statsLabel}
+          </Typography>
+        </Box>
+        <Button variant="contained" onClick={openAdd} aria-label="Add supplier">
+          + Add Supplier
         </Button>
       </Box>
 
-      <SupplierDirectory
-        onEditSupplier={openEdit}
-        onViewHistory={(s) => setHistorySupplier(s)}
-      />
+      {/* Two-column layout */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: '1fr 360px' },
+          gap: 3,
+          alignItems: 'start',
+        }}
+      >
+        {/* Left: supplier list + recent orders */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
+            {/* Search bar + filter tabs */}
+            <Box
+              sx={{
+                px: 3,
+                pt: 2,
+                pb: 1,
+                borderBottom: 1,
+                borderColor: 'divider',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1,
+              }}
+            >
+              <TextField
+                placeholder="Search suppliers…"
+                size="small"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                sx={{ maxWidth: 320 }}
+                aria-label="Search suppliers"
+              />
+              <Tabs
+                value={activeTab}
+                onChange={(_, v: TabValue) => setActiveTab(v)}
+                sx={{ minHeight: 36 }}
+              >
+                <Tab
+                  value="all"
+                  label={`All ${suppliers.length}`}
+                  sx={{ minHeight: 36, py: 0, textTransform: 'none' }}
+                />
+                <Tab
+                  value="active"
+                  label="Active"
+                  sx={{ minHeight: 36, py: 0, textTransform: 'none' }}
+                />
+                <Tab
+                  value="pending"
+                  label="Pending order"
+                  sx={{ minHeight: 36, py: 0, textTransform: 'none' }}
+                />
+              </Tabs>
+            </Box>
+
+            {/* Supplier list body */}
+            {suppliersLoading ? (
+              <Box sx={{ p: 3 }}>
+                <LoadingState label="Loading suppliers…" />
+              </Box>
+            ) : suppliersError ? (
+              <Box sx={{ p: 3 }}>
+                <ErrorState
+                  description="We couldn't load the supplier directory. Check your connection and try again."
+                  onRetry={() => refetchSuppliers()}
+                />
+              </Box>
+            ) : filteredSuppliers.length === 0 ? (
+              <Box sx={{ p: 3 }}>
+                <EmptyState
+                  title={suppliers.length === 0 ? 'No suppliers yet' : 'No matching suppliers'}
+                  description={
+                    suppliers.length === 0
+                      ? 'Suppliers you add will appear here with their contact details and delivery cadence.'
+                      : 'Try adjusting your search or selecting a different filter.'
+                  }
+                />
+              </Box>
+            ) : (
+              filteredSuppliers.map((supplier) => (
+                <SupplierCard
+                  key={supplier.id}
+                  supplier={supplier}
+                  onView={() => setHistorySupplier(supplier)}
+                  onEdit={() => openEdit(supplier)}
+                />
+              ))
+            )}
+          </Paper>
+
+          {/* Recent Orders table */}
+          <Paper variant="outlined" sx={{ p: 2.5 }}>
+            <Typography
+              variant="overline"
+              sx={{ mb: 1.5, display: 'block', letterSpacing: 1.2, color: 'text.secondary' }}
+            >
+              Recent Orders
+            </Typography>
+            <RecentOrdersTable
+              deliveries={recentDeliveries}
+              suppliers={suppliers}
+              isLoading={deliveriesLoading}
+              isError={deliveriesError}
+              onRetry={() => refetchDeliveries()}
+            />
+          </Paper>
+        </Box>
+
+        {/* Right sidebar */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Paper variant="outlined" sx={{ p: 2.5 }}>
+            <Typography
+              variant="overline"
+              sx={{ mb: 1.5, display: 'block', letterSpacing: 1.2, color: 'text.secondary' }}
+            >
+              Spend by Supplier
+            </Typography>
+            <SupplierSpendChart
+              deliveries={recentDeliveries}
+              suppliers={suppliers}
+              isLoading={deliveriesLoading}
+              isError={deliveriesError}
+              onRetry={() => refetchDeliveries()}
+            />
+          </Paper>
+
+          <Paper variant="outlined" sx={{ p: 2.5 }}>
+            <Typography
+              variant="overline"
+              sx={{ mb: 1.5, display: 'block', letterSpacing: 1.2, color: 'text.secondary' }}
+            >
+              Upcoming Deliveries
+            </Typography>
+            <UpcomingDeliveriesList deliveries={recentDeliveries} suppliers={suppliers} />
+          </Paper>
+        </Box>
+      </Box>
 
       <SupplierDeliveryHistory
         supplier={historySupplier}

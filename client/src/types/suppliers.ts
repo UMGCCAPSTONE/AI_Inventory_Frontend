@@ -1,3 +1,6 @@
+export type SupplierStatus = 'ACTIVE' | 'INACTIVE' | 'ORDER_DUE'
+export type DeliveryStatus = 'DELIVERED' | 'PENDING'
+
 export type DeliveryLineItem = {
   name: string
   quantity: number
@@ -11,4 +14,11 @@ export type Delivery = {
   deliveryDate: string
   items: DeliveryLineItem[]
   totalAmount: number
+  status?: DeliveryStatus
+}
+
+// Cross-supplier delivery returned by GET /deliveries/recent.
+// May carry a pre-resolved supplierName so callers skip a local lookup.
+export type CrossSupplierDelivery = Delivery & {
+  supplierName?: string
 }
