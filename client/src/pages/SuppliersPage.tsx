@@ -131,7 +131,7 @@ function SuppliersPage() {
     <Box
       component="section"
       aria-label="Suppliers"
-      sx={{ maxWidth: 1390, mx: 'auto', px: { xs: 2, md: 4.5 }, py: 4 }}
+      sx={{ maxWidth: 1440, mx: 'auto', px: { xs: 2, md: 4.5 }, py: 4 }}
     >
       {/* Page header */}
       <Box
@@ -143,7 +143,11 @@ function SuppliersPage() {
         }}
       >
         <Box>
-          <Typography variant="h3" component="h1" sx={{ fontWeight: 700, lineHeight: 1.1 }}>
+          <Typography
+            variant="h2"
+            component="h1"
+            sx={{ fontWeight: 600, lineHeight: 0.98, letterSpacing: '-0.025em' }}
+          >
             Supplier network
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
@@ -159,14 +163,14 @@ function SuppliersPage() {
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', lg: '1fr 360px' },
+          gridTemplateColumns: { xs: '1fr', lg: '1.7fr 1fr' },
           gap: 3,
           alignItems: 'start',
         }}
       >
         {/* Left: supplier list + recent orders */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
+          <Paper variant="outlined" sx={{ overflow: 'hidden', boxShadow: 'var(--shadow)' }}>
             {/* Search bar + filter tabs */}
             <Box
               sx={{
@@ -247,7 +251,7 @@ function SuppliersPage() {
           </Paper>
 
           {/* Recent Orders table */}
-          <Paper variant="outlined" sx={{ p: 2.5 }}>
+          <Paper variant="outlined" sx={{ p: 2.5, boxShadow: 'var(--shadow)' }}>
             <Typography
               variant="overline"
               sx={{ mb: 1.5, display: 'block', letterSpacing: 1.2, color: 'text.secondary' }}
@@ -266,7 +270,7 @@ function SuppliersPage() {
 
         {/* Right sidebar */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <Paper variant="outlined" sx={{ p: 2.5 }}>
+          <Paper variant="outlined" sx={{ p: 2.5, boxShadow: 'var(--shadow)' }}>
             <Typography
               variant="overline"
               sx={{ mb: 1.5, display: 'block', letterSpacing: 1.2, color: 'text.secondary' }}
@@ -282,7 +286,7 @@ function SuppliersPage() {
             />
           </Paper>
 
-          <Paper variant="outlined" sx={{ p: 2.5 }}>
+          <Paper variant="outlined" sx={{ p: 2.5, boxShadow: 'var(--shadow)' }}>
             <Typography
               variant="overline"
               sx={{ mb: 1.5, display: 'block', letterSpacing: 1.2, color: 'text.secondary' }}
