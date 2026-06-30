@@ -4,7 +4,7 @@ vi.mock('./apiClient', () => ({
   apiClient: { get: vi.fn(), post: vi.fn(), patch: vi.fn() },
 }))
 
-import { createSupplier, fetchSuppliers, updateSupplier } from './suppliers'
+import { createSupplier, fetchSupplierDeliveries, fetchSuppliers, updateSupplier } from './suppliers'
 import { apiClient } from './apiClient'
 
 const getMock = vi.mocked(apiClient.get)
@@ -46,5 +46,21 @@ describe('updateSupplier', () => {
 
     await expect(updateSupplier('s1', { name: 'Renamed' })).resolves.toEqual(updated)
     expect(patchMock).toHaveBeenCalledWith('/suppliers/s1', { name: 'Renamed' })
+  })
+})
+
+describe('fetchSupplierDeliveries', () => {
+  it('GETs delivery history from /suppliers/:id/deliveries', async () => {
+    const deliveries = [{ id: 'd1', supplierId: 's1', deliveryDate: '2026-06-01', items: [], totalAmount: 0 }]
+    getMock.mockResolvedValue(deliveries as never)
+
+    await expect(fetchSupplierDeliveries('s1')).resolves.toEqual(deliveries)
+    expect(getMock).toHaveBeenCalledWith('/suppliers/s1/deliveries')
+  })
+
+  it('falls back to an empty array when the API returns nothing', async () => {
+    getMock.mockResolvedValue(undefined as never)
+
+    await expect(fetchSupplierDeliveries('s1')).resolves.toEqual([])
   })
 })

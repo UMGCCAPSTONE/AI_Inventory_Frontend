@@ -66,5 +66,11 @@ The newest `updatedAt` across inventory items (`lastUpdatedAt` on the dashboard 
 ## Reports Page
 The page at `/reports` that surfaces inventory health KPIs. For MVP (T-10A) it reads from `DashboardSummary` via a thin `useReportKpis` hook (a swap point for a future `/reports/kpis` endpoint). The four canonical KPI card labels are: **"Total items"** (`totalItems`), **"Expiring soon"** (`expiringSoonCount`), **"At-risk value"** (`atRiskValue`), **"Low stock"** (`lowStockCount`). Use these labels exactly — do not use "total inventory value", "waste-risk summary", "below par", or "expiring item counts".
 
+## delivery
+A record of goods received from a supplier on a given date. Carries a `deliveryDate`, a list of *delivery line items*, and a `totalAmount`. In this system an "order" and a "delivery" are the same concept — avoid "order" when referring to this entity to prevent confusion with a purchase-order workflow. The plural "delivery history" is the canonical label for the list view.
+
+## delivery line item
+A single item within a *delivery*: the ingredient `name`, `quantity`, optional `unit`, and optional `unitCost`. Distinct from an *inventory item* — a delivery line item is a historical record of what arrived, not a live stock record.
+
 ## category total value
 The total dollar value of all inventory items in a category: `sum(quantity × unitCost)` across every item in that category. Computed in the frontend service layer from API-provided fields — this is arithmetic aggregation, not a business-rule recomputation prohibited by ADR 0004. Distinct from *at-risk value* (which is `isAtRisk ? quantity × unitCost : 0` and is server-computed). The column label in the category summary table is **"Total value"**.
