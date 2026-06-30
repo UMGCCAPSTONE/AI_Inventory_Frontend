@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import type { InventoryListQuery } from '@umgccapstone/contracts'
-import { fetchInventory, queryKeys } from '../services'
+import { fetchAllInventory, fetchInventory, queryKeys } from '../services'
 
 // Inventory list query (T-7B). `keepPreviousData` holds the current rows while
 // the next page/sort/filter loads, so the grid doesn't flash empty between
@@ -10,5 +10,15 @@ export function useInventory(query: InventoryListQuery) {
     queryKey: queryKeys.inventory.list(query),
     queryFn: () => fetchInventory(query),
     placeholderData: keepPreviousData,
+  })
+}
+
+// Every inventory item, unpaginated — backs the Add Dish ingredient picker (T-8).
+// Cached a few minutes; the picker only needs id/name/unit, which change rarely.
+export function useAllInventory() {
+  return useQuery({
+    queryKey: queryKeys.inventory.all,
+    queryFn: fetchAllInventory,
+    staleTime: 5 * 60 * 1000,
   })
 }
