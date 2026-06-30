@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mise — Menu Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1EDE3; --surface:#FBF9F2; --surface-2:#F6F2E8;
+    --ink:#1F1B16; --ink-soft:#5C544A; --muted:#938A7C;
+    --hairline:rgba(31,27,22,.10); --hairline-soft:rgba(31,27,22,.06);
+    --terra:#A8392A; --terra-soft:#FBEAE4;
+    --amber:#B5832A; --amber-soft:#F6ECD6;
+    --sage:#5E6E45; --sage-soft:#EBEFE0;
+    --radius:14px; --shadow:0 1px 2px rgba(31,27,22,.04), 0 8px 24px rgba(31,27,22,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{background:var(--bg);color:var(--ink);font-family:"Inter",system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1320px;margin:0 auto;padding:0 40px}
+
+  /* Nav */
+  header.nav{display:flex;align-items:center;gap:36px;padding:26px 0 22px}
+  .brand{display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit}
+  .mark{width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-family:"Fraunces",serif;font-weight:600;font-style:italic;font-size:22px;flex:none}
+  .brand-name{font-family:"Fraunces",serif;font-weight:600;font-size:30px;letter-spacing:-.01em}
+  .brand-tag{font-family:"Fraunces",serif;font-style:italic;color:var(--muted);font-size:16px;margin-left:2px}
+  nav.tabs{display:flex;align-items:center;gap:6px;margin-left:8px}
+  .tab{font-size:15px;color:var(--ink-soft);text-decoration:none;padding:8px 16px;border-radius:9px;transition:background .15s ease,color .15s ease}
+  .tab:hover{background:var(--surface-2);color:var(--ink)}
+  .tab.active{background:var(--ink);color:var(--surface);font-weight:500}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .service{border:1px solid var(--hairline);border-radius:11px;padding:7px 18px;text-align:center;background:var(--surface)}
+  .service .lbl{font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .service .val{font-family:"Fraunces",serif;font-style:italic;font-weight:500;font-size:16px;margin-top:1px}
+  .signin{display:flex;align-items:center;gap:10px;border:1px solid var(--hairline);border-radius:999px;padding:8px 20px 8px 10px;background:var(--surface);cursor:pointer;font:inherit;font-size:15px;color:var(--ink);transition:box-shadow .15s ease,border-color .15s ease}
+  .signin:hover{box-shadow:var(--shadow);border-color:rgba(31,27,22,.18)}
+  .signin .dot{width:24px;height:24px;border-radius:50%;background:var(--terra);flex:none}
+
+  /* Page head */
+  .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:30px 0 10px;flex-wrap:wrap}
+  .page-title{font-family:"Fraunces",serif;font-weight:500;font-size:clamp(40px,5.5vw,62px);letter-spacing:-.02em;line-height:1}
+  .page-sub{font-size:15px;color:var(--muted);margin-top:10px}
+  .head-actions{display:flex;gap:12px;align-items:center;padding-top:8px}
+  .btn{font:inherit;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:11px 20px;border-radius:10px;cursor:pointer;transition:transform .12s ease,box-shadow .15s ease,background .15s ease}
+  .btn:active{transform:translateY(1px)}
+  .btn-ghost{background:var(--surface);border:1px solid rgba(168,57,42,.35);color:var(--terra)}
+  .btn-ghost:hover{background:var(--terra-soft)}
+  .btn-solid{background:var(--terra);border:1px solid var(--terra);color:#fff}
+  .btn-solid:hover{box-shadow:var(--shadow);background:#963122}
+
+  /* Section shells */
+  .section{padding:30px 0 6px}
+  .sec-title{font-family:"Fraunces",serif;font-weight:600;font-size:30px;letter-spacing:-.01em}
+  .sec-note{font-size:14px;color:var(--muted);margin-top:3px}
+
+  /* segmented filter (specials) */
+  .segment{display:inline-flex;gap:4px;background:var(--surface-2);border:1px solid var(--hairline-soft);padding:4px;border-radius:11px;margin:16px 0 22px}
+  .seg{font:inherit;font-size:13.5px;font-weight:500;color:var(--ink-soft);padding:7px 16px;border:none;background:none;border-radius:8px;cursor:pointer;transition:background .15s ease,color .15s ease}
+  .seg:hover{color:var(--ink)}
+  .seg.active{background:var(--terra);color:#fff}
+
+  /* Cards */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .card{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--radius);padding:22px 22px 20px;box-shadow:var(--shadow);display:flex;flex-direction:column;transition:transform .15s ease,box-shadow .15s ease}
+  .card:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(31,27,22,.05),0 14px 32px rgba(31,27,22,.08)}
+  .card.tint-amber{background:#FBF6EA}
+  .card.is-new{border-style:dashed;border-color:rgba(168,57,42,.4)}
+  .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .card h3{font-family:"Fraunces",serif;font-weight:600;font-size:21px;letter-spacing:-.01em;line-height:1.15}
+  .badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex:none}
+  .tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;line-height:1.4}
+  .tag.outline-terra{border:1px solid rgba(168,57,42,.45);color:var(--terra)}
+  .status-row{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+  .pill{font-size:12px;font-weight:600;padding:4px 11px;border-radius:999px;white-space:nowrap}
+  .pill.available{background:var(--sage);color:#fff}
+  .pill.unavailable{background:#E4DFD3;color:#6F6757}
+  .pill.expiring{background:var(--amber);color:#fff}
+  .blurb{font-size:13.5px;color:var(--ink-soft);line-height:1.5;margin:10px 0 0}
+  .ingredients{font-size:13.5px;color:var(--ink-soft);margin:8px 0 0}
+  .limit{font-size:13px;color:var(--terra);margin-top:8px}
+  .price-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}
+  .price{font-family:"Fraunces",serif;font-weight:600;font-size:27px;letter-spacing:-.01em}
+  .foodcost{font-size:12.5px;color:var(--muted);margin-top:1px}
+  .margin{font-size:12px;font-weight:600;color:var(--sage);border:1px solid rgba(94,110,69,.4);padding:3px 11px;border-radius:999px;white-space:nowrap}
+  .card-foot{display:flex;align-items:center;gap:18px;margin-top:16px;padding-top:14px;border-top:1px solid var(--hairline-soft)}
+  .link{background:none;border:none;font:inherit;font-size:12.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:0;color:var(--terra);text-decoration:none}
+  .link:hover{text-decoration:underline;text-underline-offset:3px}
+  .link.muted{color:var(--ink-soft)}
+
+  /* Toolbar: search + chips */
+  .toolbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:18px 0 10px}
+  .search{flex:1 1 260px;max-width:380px}
+  .search input{width:100%;padding:11px 16px;border:1px solid var(--hairline);border-radius:11px;background:var(--surface);font:inherit;font-size:14.5px;color:var(--ink)}
+  .search input::placeholder{color:var(--muted)}
+  .search input:focus{outline:2px solid var(--terra);outline-offset:1px;border-color:transparent}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{font:inherit;font-size:13.5px;font-weight:500;color:var(--ink-soft);background:var(--surface);border:1px solid var(--hairline);padding:8px 14px;border-radius:999px;cursor:pointer;display:inline-flex;gap:8px;align-items:center;transition:background .15s ease,color .15s ease,border-color .15s ease}
+  .chip:hover{background:var(--surface-2);color:var(--ink)}
+  .chip .c{font-size:12px;color:var(--muted);font-weight:600}
+  .chip.active{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+  .chip.active .c{color:rgba(255,255,255,.7)}
+  .chip.pulse{animation:pulse .5s ease}
+  .chip-clear{font:inherit;font-size:13px;font-weight:600;color:var(--ink-soft);background:none;border:none;padding:8px 10px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .chip-clear:hover{color:var(--terra)}
+  @keyframes pulse{0%,100%{transform:none}50%{transform:scale(1.06)}}
+
+  /* Category sections */
+  .cat{margin-top:30px}
+  .cat-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px;padding-bottom:11px;border-bottom:1px solid var(--hairline)}
+  .cat-title{font-family:"Fraunces",serif;font-weight:600;font-size:22px;letter-spacing:-.01em;display:flex;align-items:center;gap:12px}
+  .count-badge{font-family:"Inter",sans-serif;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--sage-soft);color:var(--sage)}
+  .count-badge.full{background:var(--amber-soft);color:#8C6417}
+  .count-badge.over{background:var(--terra-soft);color:var(--terra)}
+  .add-cat{font:inherit;font-size:12.5px;font-weight:600;color:var(--terra);background:none;border:1px solid rgba(168,57,42,.35);padding:7px 14px;border-radius:9px;cursor:pointer;transition:background .15s ease}
+  .add-cat:hover{background:var(--terra-soft)}
+  .empty{text-align:center;padding:54px 0;color:var(--muted);font-size:15px}
+
+  /* Toast */
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 22px;border-radius:11px;font-size:14px;font-weight:500;box-shadow:0 10px 30px rgba(31,27,22,.25);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;max-width:90vw;z-index:60}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.warn{background:#7C5A12}
+
+  .spacer{height:48px}
+  a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--terra);outline-offset:3px;border-radius:6px}
+
+  @media (max-width:980px){.cards{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:900px){.wrap{padding:0 22px}header.nav{flex-wrap:wrap;gap:18px}nav.tabs{order:3;width:100%;overflow-x:auto}}
+  @media (max-width:640px){.cards{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="Mise home">
+      <div class="mark">M</div>
+      <span class="brand-name">Mise</span>
+      <span class="brand-tag">smart kitchen inventory</span>
+    </a>
+    <nav class="tabs">
+      <a class="tab" href="index.html">Today</a>
+      <a class="tab" href="#">Inventory</a>
+      <a class="tab active" href="menu.html">Menu</a>
+      <a class="tab" href="#">Suppliers</a>
+      <a class="tab" href="#">Reports</a>
+    </nav>
+    <div class="nav-right">
+      <div class="service">
+        <div class="lbl">Service</div>
+        <div class="val">Not set</div>
+      </div>
+      <button class="signin"><span class="dot"></span>Sign in</button>
+    </div>
+  </header>
+
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Menu Builder</h1>
+      <div class="page-sub" id="pageSub">—</div>
+    </div>
+    <div class="head-actions">
+      <button class="btn btn-ghost" id="addDish">+ Add dish</button>
+      <button class="btn btn-solid">Generate recommendations</button>
+    </div>
+  </div>
+
+  <!-- AI Suggested Specials (curated short feed) -->
+  <section class="section">
+    <h2 class="sec-title">AI Suggested Specials</h2>
+    <div class="sec-note">Top picks based on expiring inventory</div>
+    <div class="segment" role="tablist" aria-label="Filter specials">
+      <button class="seg active" role="tab" aria-selected="true">Active</button>
+      <button class="seg" role="tab" aria-selected="false">Saved</button>
+      <button class="seg" role="tab" aria-selected="false">Dismissed</button>
+    </div>
+    <div class="cards">
+      <article class="card tint-amber">
+        <div class="card-top"><h3>Tomato Bruschetta</h3><div class="badges"><span class="tag outline-terra">New dish idea</span></div></div>
+        <div class="status-row"><span class="pill available">Available</span><span class="pill expiring">Uses expiring items</span></div>
+        <p class="blurb">Uses Roma tomatoes expiring this week with pantry staples.</p>
+        <div class="price-row"><div><div class="price">$2.27</div><div class="foodcost">Food cost $0.68</div></div><span class="margin">70% margin</span></div>
+        <div class="card-foot"><a class="link" href="#">View recipe</a><button class="link muted">Dismiss</button><button class="link">Save</button></div>
+      </article>
+      <article class="card tint-amber">
+        <div class="card-top"><h3>Caprese Salad</h3><div class="badges"><span class="tag outline-terra">New dish idea</span></div></div>
+        <div class="status-row"><span class="pill available">Available</span><span class="pill expiring">Uses expiring items</span></div>
+        <p class="blurb">Pairs expiring mozzarella with tomatoes and fresh basil.</p>
+        <div class="price-row"><div><div class="price">$5.17</div><div class="foodcost">Food cost $1.55</div></div><span class="margin">70% margin</span></div>
+        <div class="card-foot"><a class="link" href="#">View recipe</a><button class="link muted">Dismiss</button><button class="link">Save</button></div>
+      </article>
+      <article class="card tint-amber">
+        <div class="card-top"><h3>Citrus Spritz</h3><div class="badges"><span class="tag outline-terra">New dish idea</span></div></div>
+        <div class="status-row"><span class="pill available">Available</span><span class="pill expiring">Uses expiring items</span></div>
+        <p class="blurb">Turns orange juice nearing expiry into a bright service drink.</p>
+        <div class="price-row"><div><div class="price">$4.50</div><div class="foodcost">Food cost $1.35</div></div><span class="margin">70% margin</span></div>
+        <div class="card-foot"><a class="link" href="#">View recipe</a><button class="link muted">Dismiss</button><button class="link">Save</button></div>
+      </article>
+    </div>
+  </section>
+
+  <div class="spacer"></div>
+
+  <!-- Current menu (categorized + searchable + capped) -->
+  <section class="section">
+    <h2 class="sec-title">Current menu</h2>
+    <div class="sec-note" id="capNote">Choose categories to view — select them all to see the full menu. Up to 6 dishes per category.</div>
+
+    <div class="toolbar">
+      <div class="search"><input type="text" id="search" placeholder="Search dishes…" aria-label="Search dishes"></div>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div id="menuRoot"></div>
+  </section>
+
+  <div class="spacer"></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  // ---- Specials segmented filter (visual only) ----
+  document.querySelectorAll(".seg").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      document.querySelectorAll(".seg").forEach(function(b){b.classList.remove("active");b.setAttribute("aria-selected","false");});
+      btn.classList.add("active");btn.setAttribute("aria-selected","true");
+    });
+  });
+
+  // ---- Menu data ----
+  var CAP = 6;
+  var CATEGORIES = ["Appetizers","Mains","Sides","Specials","Desserts","Drinks"];
+  var uid = 0;
+  function dish(cat,name,ingredients,price,cost,opts){
+    opts = opts || {};
+    return {id:++uid,cat:cat,name:name,ingredients:ingredients,price:price,cost:cost,
+            available:opts.available!==false, limitedBy:opts.limitedBy||null,
+            expiring:!!opts.expiring, isNew:!!opts.isNew};
+  }
+  var menu = [
+    dish("Appetizers","Garden Salad","Romaine · Parmesan · Olive oil",5.67,1.70),
+    dish("Appetizers","Tomato Bruschetta","Table salt · Olive oil · Roma tomato",2.27,0.68,{expiring:true}),
+    dish("Appetizers","Caprese Salad","Fresh mozzarella · Tomato · Basil",5.17,1.55,{expiring:true}),
+    dish("Appetizers","Cheese Board","Assorted dairy · Honey · Crackers",9.00,2.70),
+    dish("Appetizers","Stuffed Mushrooms","Mushroom · Garlic · Breadcrumb",6.00,1.80),
+    dish("Appetizers","Soup of the Day","Seasonal vegetables · Stock",5.00,1.50),
+    dish("Mains","Margherita Pizza","Roma tomato · Fresh mozzarella · Basil · Flour",8.37,2.51),
+    dish("Mains","Grilled Salmon Special","Salmon fillet · Olive oil · Table salt",30.90,9.27,{available:false,limitedBy:"Salmon fillet"}),
+    dish("Mains","Shrimp Linguine","Frozen shrimp · Garlic · Chili",14.50,4.35),
+    dish("Sides","Garlic Bread","Bread · Garlic · Butter",3.00,0.90),
+    dish("Sides","Side Salad","Mixed greens · Vinaigrette",4.00,1.20),
+    dish("Specials","Bruschetta Special","Roma tomato · Pantry staples",2.27,0.68,{expiring:true}),
+    dish("Desserts","Lemon Tart","Lemon · Butter · Sugar",6.50,1.95),
+    dish("Desserts","Tiramisu","Mascarpone · Espresso · Cocoa",7.00,2.10),
+    dish("Drinks","Citrus Spritz","Orange juice · Soda · Mint",4.50,1.35,{expiring:true}),
+    dish("Drinks","House Lemonade","Lemon · Sugar · Water",3.50,1.05)
+  ];
+
+  var state = {selected:[CATEGORIES[0]], query:""};
+  var root = document.getElementById("menuRoot");
+  var chipsEl = document.getElementById("chips");
+
+  function countIn(cat){ return menu.filter(function(d){return d.cat===cat;}).length; }
+  function marginPct(d){ return d.price>0 ? Math.round((d.price-d.cost)/d.price*100) : 0; }
+  function money(n){ return "$"+n.toFixed(2); }
+
+  var toastTimer;
+  function toast(msg,warn){
+    var t=document.getElementById("toast");
+    t.textContent=msg; t.classList.toggle("warn",!!warn); t.classList.add("show");
+    clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.classList.remove("show");},3200);
+  }
+
+  function cardHTML(d){
+    var pills='<span class="pill '+(d.available?"available":"unavailable")+'">'+(d.available?"Available":"Unavailable")+'</span>';
+    if(d.expiring) pills+='<span class="pill expiring">Uses expiring items</span>';
+    var limit = d.limitedBy ? '<p class="limit">Limited by '+d.limitedBy+'</p>' : '';
+    return '<article class="card'+(d.expiring?" tint-amber":"")+(d.isNew?" is-new":"")+'">'
+      + '<h3>'+d.name+'</h3>'
+      + '<p class="ingredients">'+d.ingredients+'</p>'
+      + '<div class="status-row">'+pills+'</div>'+limit
+      + '<div class="price-row"><div><div class="price">'+money(d.price)+'</div>'
+      + '<div class="foodcost">Food cost '+money(d.cost)+'</div></div>'
+      + '<span class="margin">'+marginPct(d)+'% margin</span></div>'
+      + '<div class="card-foot"><a class="link" href="#">View recipe</a>'
+      + '<button class="link muted" data-remove="'+d.id+'">Remove</button></div>'
+      + '</article>';
+  }
+
+  function isSelected(cat){ return state.selected.indexOf(cat) > -1; }
+  function renderChips(){
+    var html = "";
+    CATEGORIES.forEach(function(cat){
+      var on = isSelected(cat);
+      html += '<button class="chip'+(on?" active":"")+'" data-cat="'+cat+'" aria-pressed="'+on+'">'+cat+' <span class="c">'+countIn(cat)+'</span></button>';
+    });
+    if(state.selected.length){
+      html += '<button class="chip-clear" id="clearChips">Clear</button>';
+    }
+    chipsEl.innerHTML = html;
+    chipsEl.querySelectorAll(".chip").forEach(function(c){
+      c.addEventListener("click",function(){
+        var cat=c.getAttribute("data-cat");
+        var i=state.selected.indexOf(cat);
+        if(i>-1) state.selected.splice(i,1); else state.selected.push(cat);
+        render();
+      });
+    });
+    var clr=document.getElementById("clearChips");
+    if(clr) clr.addEventListener("click",function(){ state.selected=[]; render(); });
+  }
+
+  function render(){
+    document.getElementById("pageSub").textContent = menu.length+" dishes · "+CATEGORIES.length+" categories";
+    renderChips();
+
+    var q = state.query.trim().toLowerCase();
+
+    if(state.selected.length===0){
+      root.innerHTML = '<div class="empty">Select one or more categories above to view your menu.<br>Select them all to see the full list.</div>';
+      return;
+    }
+
+    var cats = CATEGORIES.filter(function(c){ return isSelected(c); });
+    var html = "";
+    var anyShown = false;
+
+    cats.forEach(function(cat){
+      var items = menu.filter(function(d){return d.cat===cat;});
+      if(q){
+        items = items.filter(function(d){
+          return d.name.toLowerCase().indexOf(q)>-1 || d.ingredients.toLowerCase().indexOf(q)>-1;
+        });
+        if(items.length===0) return; // hide empty sections while searching
+      }
+      anyShown = true;
+      var n = countIn(cat);
+      var badgeClass = n>CAP ? "over" : (n===CAP ? "full" : "");
+      html += '<div class="cat">'
+        + '<div class="cat-head">'
+        + '<div class="cat-title">'+cat+' <span class="count-badge '+badgeClass+'">'+n+'/'+CAP+'</span></div>'
+        + '<button class="add-cat" data-add="'+cat+'">+ Add to '+cat+'</button>'
+        + '</div>';
+      if(items.length){
+        html += '<div class="cards">'+items.map(cardHTML).join("")+'</div>';
+      } else {
+        html += '<div class="empty">No dishes here yet — add your first '+cat.replace(/s$/,"").toLowerCase()+'.</div>';
+      }
+      html += '</div>';
+    });
+
+    if(!anyShown){
+      html = '<div class="empty">No dishes match "'+state.query+'" in the selected categories.</div>';
+    }
+    root.innerHTML = html;
+
+    root.querySelectorAll("[data-add]").forEach(function(b){
+      b.addEventListener("click",function(){ addToCategory(b.getAttribute("data-add")); });
+    });
+    root.querySelectorAll("[data-remove]").forEach(function(b){
+      b.addEventListener("click",function(){ removeDish(parseInt(b.getAttribute("data-remove"),10)); });
+    });
+  }
+
+  function addToCategory(cat){
+    var n = countIn(cat);
+    if(n >= CAP){
+      toast("Heads up — "+cat+" already has "+n+" (recommended max "+CAP+"). Added anyway.", true);
+    } else {
+      toast("Added a new dish to "+cat+".");
+    }
+    menu.push(dish(cat,"New dish","Add ingredients",0,0,{isNew:true}));
+    if(state.selected.indexOf(cat)===-1) state.selected.push(cat);
+    state.query="";
+    document.getElementById("search").value="";
+    render();
+  }
+
+  function removeDish(id){
+    menu = menu.filter(function(d){return d.id!==id;});
+    render();
+  }
+
+  // Top "Add dish": adds to the one selected category, or asks you to pick exactly one
+  document.getElementById("addDish").addEventListener("click",function(){
+    if(state.selected.length===1){
+      addToCategory(state.selected[0]);
+    } else {
+      toast(state.selected.length===0 ? "Select a category first, then add." : "Select just one category to add to.");
+      chipsEl.querySelectorAll(".chip").forEach(function(c){ c.classList.add("pulse"); setTimeout(function(){c.classList.remove("pulse");},500); });
+    }
+  });
+
+  document.getElementById("search").addEventListener("input",function(e){
+    state.query=e.target.value; render();
+  });
+
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mise — Today</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1EDE3;
+    --surface:#FBF9F2;
+    --surface-2:#F6F2E8;
+    --ink:#1F1B16;
+    --ink-soft:#5C544A;
+    --muted:#938A7C;
+    --hairline:rgba(31,27,22,.10);
+    --hairline-soft:rgba(31,27,22,.06);
+    --terra:#A8392A;       /* red / below par / at-risk */
+    --terra-soft:#FBEAE4;
+    --amber:#B5832A;       /* expiring */
+    --amber-soft:#F6ECD6;
+    --sage:#6E7257;        /* saved / neutral-positive */
+    --radius:14px;
+    --shadow:0 1px 2px rgba(31,27,22,.04), 0 8px 24px rgba(31,27,22,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Inter",system-ui,sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1320px;margin:0 auto;padding:0 40px}
+
+  /* ---------- Nav ---------- */
+  header.nav{display:flex;align-items:center;gap:36px;padding:26px 0 22px}
+  .brand{display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit}
+  .mark{
+    width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--surface);
+    display:grid;place-items:center;font-family:"Fraunces",serif;font-weight:600;
+    font-style:italic;font-size:22px;flex:none;
+  }
+  .brand-name{font-family:"Fraunces",serif;font-weight:600;font-size:30px;letter-spacing:-.01em}
+  .brand-tag{font-family:"Fraunces",serif;font-style:italic;color:var(--muted);font-size:16px;margin-left:2px}
+  nav.tabs{display:flex;align-items:center;gap:6px;margin-left:8px}
+  .tab{
+    font-size:15px;color:var(--ink-soft);text-decoration:none;padding:8px 16px;border-radius:9px;
+    transition:background .15s ease,color .15s ease;
+  }
+  .tab:hover{background:var(--surface-2);color:var(--ink)}
+  .tab.active{background:var(--ink);color:var(--surface);font-weight:500}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .service{
+    border:1px solid var(--hairline);border-radius:11px;padding:7px 18px;text-align:center;background:var(--surface);
+  }
+  .service .lbl{font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .service .val{font-family:"Fraunces",serif;font-style:italic;font-weight:500;font-size:16px;margin-top:1px}
+  .signin{
+    display:flex;align-items:center;gap:10px;border:1px solid var(--hairline);border-radius:999px;
+    padding:8px 20px 8px 10px;background:var(--surface);cursor:pointer;font:inherit;font-size:15px;color:var(--ink);
+    transition:box-shadow .15s ease,border-color .15s ease;
+  }
+  .signin:hover{box-shadow:var(--shadow);border-color:rgba(31,27,22,.18)}
+  .signin .dot{width:24px;height:24px;border-radius:50%;background:var(--terra);flex:none}
+
+  /* ---------- Greeting ---------- */
+  .hero{padding:30px 0 8px}
+  .greeting{
+    font-family:"Fraunces",serif;font-weight:500;font-size:clamp(48px,7vw,92px);
+    letter-spacing:-.02em;line-height:1;opacity:0;transform:translateY(8px);
+    animation:rise .6s cubic-bezier(.2,.7,.2,1) forwards;
+  }
+  .greeting .chef{color:var(--terra)}
+  @keyframes rise{to{opacity:1;transform:none}}
+
+  /* ---------- Stat bar ---------- */
+  .stats{
+    margin:34px 0 8px;background:var(--surface);border:1px solid var(--hairline);
+    border-radius:var(--radius);box-shadow:var(--shadow);
+    display:grid;grid-template-columns:repeat(4,1fr);
+  }
+  .stat{padding:24px 30px;position:relative}
+  .stat + .stat::before{content:"";position:absolute;left:0;top:22px;bottom:22px;width:1px;background:var(--hairline)}
+  .stat .lbl{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .stat .num{font-family:"Fraunces",serif;font-weight:600;font-size:46px;line-height:1.05;margin:6px 0 2px;letter-spacing:-.01em}
+  .stat .sub{font-size:13.5px;color:var(--ink-soft)}
+  .stat.is-warn .num{color:var(--amber)}
+  .stat.is-alert .num{color:var(--terra)}
+
+  /* ---------- Main grid ---------- */
+  .grid{display:grid;grid-template-columns:1.05fr 1fr;gap:64px;padding:40px 0 80px;align-items:start}
+  .col-head{font-family:"Fraunces",serif;font-weight:600;font-size:28px;letter-spacing:-.01em;margin-bottom:18px}
+  .col-head .count{font-family:"Inter",sans-serif;font-size:13px;font-weight:500;color:var(--muted);margin-left:10px;letter-spacing:.02em}
+
+  /* Alerts */
+  .alert{
+    display:flex;align-items:center;gap:16px;padding:16px 4px;border-top:1px solid var(--hairline-soft);
+  }
+  .alert:first-of-type{border-top:none}
+  .alert .sdot{width:9px;height:9px;border-radius:50%;flex:none}
+  .sdot.warn{background:var(--amber)}
+  .sdot.alert{background:var(--terra)}
+  .alert .body{min-width:0}
+  .alert .name{font-size:16.5px;font-weight:500;color:var(--ink)}
+  .alert .meta{font-size:13.5px;color:var(--muted);margin-top:2px}
+  .pill{
+    margin-left:auto;flex:none;font-size:12.5px;font-weight:600;padding:5px 13px;border-radius:999px;white-space:nowrap;
+  }
+  .pill.warn{background:var(--amber-soft);color:#7C5A12}
+  .pill.alert{background:var(--terra);color:#fff}
+
+  /* Recommendations */
+  .recs{display:flex;flex-direction:column;gap:16px}
+  .rec{
+    background:var(--surface);border:1px solid var(--hairline);
+    border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);
+    transition:transform .15s ease,box-shadow .15s ease;
+  }
+  .rec:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(31,27,22,.05),0 14px 32px rgba(31,27,22,.08)}
+  .rec.alert{background:#FBF2EE;border-color:rgba(168,57,42,.18)}
+  .rec.warn{background:#FAF4E5;border-color:rgba(181,131,42,.22)}
+  .rec.saved{background:#F2F3EA;border-color:rgba(110,114,87,.22)}
+  .rec.alert h3{color:var(--terra)}
+  .rec.warn h3{color:#8C6417}
+  .rec.saved h3{color:var(--sage)}
+  .rec .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+  .rec h3{font-family:"Fraunces",serif;font-weight:600;font-size:21px;letter-spacing:-.01em}
+  .uses{
+    font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    padding:4px 10px;border-radius:999px;background:var(--surface-2);color:var(--ink-soft);white-space:nowrap;flex:none;
+  }
+  .rec.warn .uses{background:var(--amber-soft);color:#7C5A12}
+  .rec.alert .uses{background:var(--terra-soft);color:var(--terra)}
+  .rec p{font-size:14.5px;color:var(--ink-soft);line-height:1.55}
+  .rec .build{
+    display:inline-flex;align-items:center;gap:7px;margin-top:14px;background:none;border:none;cursor:pointer;
+    font:inherit;font-size:14.5px;font-weight:600;color:var(--terra);padding:0;text-decoration:none;
+  }
+  .rec .build .arr{transition:transform .15s ease}
+  .rec .build:hover{text-decoration:underline;text-underline-offset:3px}
+  .rec .build:hover .arr{transform:translateX(3px)}
+
+  /* Menu carousel */
+  .menu-strip{padding:8px 0 88px}
+  .strip-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:20px}
+  .strip-head .sub{font-size:14px;color:var(--muted);margin-top:4px}
+  .strip-arrows{display:flex;gap:8px;flex:none}
+  .arrow-btn{
+    width:42px;height:42px;border-radius:50%;border:1px solid var(--hairline);background:var(--surface);
+    cursor:pointer;display:grid;place-items:center;font-size:18px;color:var(--ink);
+    transition:background .15s ease,box-shadow .15s ease,opacity .15s ease;
+  }
+  .arrow-btn:hover{background:var(--surface-2);box-shadow:var(--shadow)}
+  .arrow-btn:disabled{opacity:.35;cursor:default;box-shadow:none;background:var(--surface)}
+  .track{
+    display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;
+    padding:4px 4px 14px;margin:0 -4px;scrollbar-width:none;
+  }
+  .track::-webkit-scrollbar{display:none}
+  .dish{
+    flex:0 0 248px;scroll-snap-align:start;background:var(--surface);border:1px solid var(--hairline);
+    border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);
+    transition:transform .15s ease,box-shadow .15s ease;display:flex;flex-direction:column;
+  }
+  .dish:hover{transform:translateY(-3px);box-shadow:0 2px 4px rgba(31,27,22,.05),0 16px 34px rgba(31,27,22,.09)}
+  .dish{cursor:pointer}
+  .dish .band{height:72px;position:relative;display:grid;place-items:center}
+  .dish .mono{font-family:"Fraunces",serif;font-weight:600;font-size:26px;letter-spacing:.04em;color:rgba(31,27,22,.42)}
+  .dish .info{padding:16px 18px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .dish h4{font-family:"Fraunces",serif;font-weight:600;font-size:18px;letter-spacing:-.01em}
+  .dish .desc{font-size:13px;color:var(--ink-soft);line-height:1.45;flex:1}
+  .dish .status{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;margin-top:2px}
+  .dish .status .sd{width:8px;height:8px;border-radius:50%;flex:none}
+  .status.ready{color:var(--sage)} .status.ready .sd{background:var(--sage)}
+  .status.use{color:#8C6417} .status.use .sd{background:var(--amber)}
+  .status.low{color:var(--terra)} .status.low .sd{background:var(--terra)}
+
+  /* focus */
+  a:focus-visible,button:focus-visible{outline:2px solid var(--terra);outline-offset:3px;border-radius:6px}
+
+  @media (max-width:900px){
+    .wrap{padding:0 22px}
+    header.nav{flex-wrap:wrap;gap:18px}
+    nav.tabs{order:3;width:100%;overflow-x:auto}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .stat:nth-child(3)::before,.stat:nth-child(1)::before{display:none}
+    .stat:nth-child(3),.stat:nth-child(4){border-top:1px solid var(--hairline)}
+    .grid{grid-template-columns:1fr;gap:48px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .greeting{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="Mise home">
+      <div class="mark">M</div>
+      <span class="brand-name">Mise</span>
+      <span class="brand-tag">smart kitchen inventory</span>
+    </a>
+    <nav class="tabs">
+      <a class="tab active" href="index.html">Today</a>
+      <a class="tab" href="#">Inventory</a>
+      <a class="tab" href="menu.html">Menu</a>
+      <a class="tab" href="#">Suppliers</a>
+      <a class="tab" href="#">Reports</a>
+    </nav>
+    <div class="nav-right">
+      <div class="service">
+        <div class="lbl">Service</div>
+        <div class="val">Not set</div>
+      </div>
+      <button class="signin"><span class="dot"></span>Sign in</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1 class="greeting" id="greeting">Good morning, <span class="chef">Chef.</span></h1>
+  </section>
+
+  <section class="stats" aria-label="Inventory summary">
+    <div class="stat">
+      <div class="lbl">Total items</div>
+      <div class="num">15</div>
+      <div class="sub">inventory records</div>
+    </div>
+    <div class="stat is-alert">
+      <div class="lbl">Below par</div>
+      <div class="num">3</div>
+      <div class="sub">below reorder level</div>
+    </div>
+    <div class="stat is-warn">
+      <div class="lbl">Expiring soon</div>
+      <div class="num">5</div>
+      <div class="sub">expire within 7 days</div>
+    </div>
+    <div class="stat is-alert">
+      <div class="lbl">At-risk value</div>
+      <div class="num">$165.00</div>
+      <div class="sub">tied up in at-risk stock</div>
+    </div>
+  </section>
+
+  <div class="grid">
+
+    <section aria-label="Alerts">
+      <h2 class="col-head">Alerts <span class="count">7 need attention</span></h2>
+
+      <div class="alert">
+        <span class="sdot warn"></span>
+        <div class="body"><div class="name">Frozen shrimp</div><div class="meta">Expires 7/7/2026</div></div>
+        <span class="pill warn">Expiring soon</span>
+      </div>
+      <div class="alert">
+        <span class="sdot warn"></span>
+        <div class="body"><div class="name">Fresh mozzarella</div><div class="meta">Expires 7/5/2026</div></div>
+        <span class="pill warn">Expiring soon</span>
+      </div>
+      <div class="alert">
+        <span class="sdot alert"></span>
+        <div class="body"><div class="name">Olive oil</div><div class="meta">3 l on hand</div></div>
+        <span class="pill alert">Below par</span>
+      </div>
+      <div class="alert">
+        <span class="sdot warn"></span>
+        <div class="body"><div class="name">Roma tomato</div><div class="meta">Expires 7/5/2026</div></div>
+        <span class="pill warn">Expiring soon</span>
+      </div>
+      <div class="alert">
+        <span class="sdot warn"></span>
+        <div class="body"><div class="name">Orange juice</div><div class="meta">Expires 6/28/2026</div></div>
+        <span class="pill warn">Expiring soon</span>
+      </div>
+      <div class="alert">
+        <span class="sdot alert"></span>
+        <div class="body"><div class="name">Salmon fillet</div><div class="meta">0.2 kg on hand · Expires 7/1/2026</div></div>
+        <span class="pill alert">Expiring &amp; low stock</span>
+      </div>
+      <div class="alert">
+        <span class="sdot alert"></span>
+        <div class="body"><div class="name">Romaine lettuce</div><div class="meta">2 each on hand</div></div>
+        <span class="pill alert">Below par</span>
+      </div>
+    </section>
+
+    <section aria-label="AI recommendations">
+      <h2 class="col-head">AI Recommendations <span class="count">3 ideas</span></h2>
+      <div class="recs">
+
+        <article class="rec alert">
+          <div class="top">
+            <h3>Garden Salad</h3>
+            <span class="uses">Uses Romaine</span>
+          </div>
+          <p>Rule-based suggestion (AI unavailable): make a Garden Salad to use up Romaine lettuce, which is low on stock. Everything's on hand to make it now.</p>
+          <a class="build" href="menu.html">Build Garden Salad <span class="arr">→</span></a>
+        </article>
+
+        <article class="rec warn">
+          <div class="top">
+            <h3>Tomato Bruschetta</h3>
+            <span class="uses">Uses Roma tomato</span>
+          </div>
+          <p>Rule-based suggestion (AI unavailable): make Tomato Bruschetta to use up Roma tomato, which is expiring soon. Everything's on hand to make it now.</p>
+          <a class="build" href="menu.html">Build Tomato Bruschetta <span class="arr">→</span></a>
+        </article>
+
+        <article class="rec saved">
+          <div class="top">
+            <h3>Cheese Board</h3>
+            <span class="uses">Surplus dairy</span>
+          </div>
+          <p>Saved recipe — a cheese board that puts surplus dairy nearing par to good use.</p>
+          <a class="build" href="menu.html">Build Cheese Board <span class="arr">→</span></a>
+        </article>
+
+      </div>
+    </section>
+
+  </div>
+
+  <section class="menu-strip" aria-label="On the menu">
+    <div class="strip-head">
+      <div>
+        <h2 class="col-head" style="margin-bottom:0">On the Menu</h2>
+        <div class="sub">What you can plate right now, based on today's stock.</div>
+      </div>
+      <div class="strip-arrows">
+        <button class="arrow-btn" id="prevBtn" aria-label="Previous dishes">←</button>
+        <button class="arrow-btn" id="nextBtn" aria-label="Next dishes">→</button>
+      </div>
+    </div>
+
+    <div class="track" id="track" tabindex="0" aria-label="Menu items, scrollable">
+
+      <article class="dish">
+        <div class="band" style="background:#EFEAD9"><span class="mono">GS</span></div>
+        <div class="info">
+          <h4>Garden Salad</h4>
+          <p class="desc">Crisp Romaine, shaved veg, house vinaigrette.</p>
+          <span class="status ready"><span class="sd"></span>Ready to make</span>
+        </div>
+      </article>
+
+      <article class="dish">
+        <div class="band" style="background:#F3E7DC"><span class="mono">TB</span></div>
+        <div class="info">
+          <h4>Tomato Bruschetta</h4>
+          <p class="desc">Roma tomato, basil, toasted sourdough.</p>
+          <span class="status use"><span class="sd"></span>Use expiring stock</span>
+        </div>
+      </article>
+
+      <article class="dish">
+        <div class="band" style="background:#EEEEDD"><span class="mono">CB</span></div>
+        <div class="info">
+          <h4>Cheese Board</h4>
+          <p class="desc">Surplus dairy, honey, seasonal accompaniments.</p>
+          <span class="status ready"><span class="sd"></span>Ready to make</span>
+        </div>
+      </article>
+
+      <article class="dish">
+        <div class="band" style="background:#F0E2DC"><span class="mono">GS</span></div>
+        <div class="info">
+          <h4>Grilled Salmon</h4>
+          <p class="desc">Pan-seared fillet, lemon, herb butter.</p>
+          <span class="status low"><span class="sd"></span>Low stock — 0.2 kg</span>
+        </div>
+      </article>
+
+      <article class="dish">
+        <div class="band" style="background:#EDE9DA"><span class="mono">SL</span></div>
+        <div class="info">
+          <h4>Shrimp Linguine</h4>
+          <p class="desc">Frozen shrimp, garlic, chili, white wine.</p>
+          <span class="status ready"><span class="sd"></span>Ready to make</span>
+        </div>
+      </article>
+
+      <article class="dish">
+        <div class="band" style="background:#EFEBDB"><span class="mono">CA</span></div>
+        <div class="info">
+          <h4>Caprese</h4>
+          <p class="desc">Fresh mozzarella, tomato, basil, olive oil.</p>
+          <span class="status use"><span class="sd"></span>Use expiring stock</span>
+        </div>
+      </article>
+
+      <article class="dish">
+        <div class="band" style="background:#F1E6D6"><span class="mono">CS</span></div>
+        <div class="info">
+          <h4>Citrus Spritz</h4>
+          <p class="desc">Orange juice, soda, fresh mint garnish.</p>
+          <span class="status use"><span class="sd"></span>Use expiring stock</span>
+        </div>
+      </article>
+
+    </div>
+  </section>
+</div>
+
+<script>
+  (function(){
+    var h = new Date().getHours();
+    var part = (h >= 5 && h < 12) ? "Good morning"
+             : (h >= 12 && h < 17) ? "Good afternoon"
+             : "Good evening";
+    document.getElementById("greeting").innerHTML =
+      part + ', <span class="chef">Chef.</span>';
+  })();
+
+  (function(){
+    var track = document.getElementById("track");
+    var prev = document.getElementById("prevBtn");
+    var next = document.getElementById("nextBtn");
+    if(!track) return;
+    var step = 266;
+    function update(){
+      var max = track.scrollWidth - track.clientWidth - 2;
+      prev.disabled = track.scrollLeft <= 2;
+      next.disabled = track.scrollLeft >= max;
+    }
+    prev.addEventListener("click", function(){ track.scrollBy({left:-step*2, behavior:"smooth"}); });
+    next.addEventListener("click", function(){ track.scrollBy({left: step*2, behavior:"smooth"}); });
+    track.addEventListener("scroll", update, {passive:true});
+    window.addEventListener("resize", update);
+    update();
+
+    track.querySelectorAll(".dish").forEach(function(card){
+      card.addEventListener("click", function(){ window.location.href = "menu.html"; });
+    });
+  })();
+</script>
+</body>
+</html>
