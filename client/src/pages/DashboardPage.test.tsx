@@ -71,7 +71,7 @@ describe('DashboardPage — US-DASH-1: summary cards & metrics', () => {
     render(<DashboardPage />, { wrapper })
 
     await waitFor(() => {
-      expect(screen.getByText('Total Items')).toBeInTheDocument()
+      expect(screen.getByText('Total items')).toBeInTheDocument()
     })
   })
 
@@ -182,8 +182,8 @@ describe('DashboardPage — US-DASH-2: urgent alerts', () => {
     render(<DashboardPage />, { wrapper })
 
     await waitFor(() => {
-      expect(screen.getByText('Below Par')).toBeInTheDocument()
-      expect(screen.getByText('Expiring Soon')).toBeInTheDocument()
+      expect(screen.getByText('Below par')).toBeInTheDocument()
+      expect(screen.getByText('Expiring soon')).toBeInTheDocument()
     })
     expect(getMock).toHaveBeenCalledWith('/dashboard/alerts')
   })
@@ -256,7 +256,7 @@ describe('DashboardPage — US-DASH-3: AI recommendation preview', () => {
   it('navigates to the Menu Builder when a recommendation card CTA is clicked', async () => {
     getMock.mockImplementation(t6cImpl())
     render(<DashboardPage />, { wrapper })
-    const buttons = await screen.findAllByRole('button', { name: /go to menu builder/i })
+    const buttons = await screen.findAllByRole('button', { name: /build/i })
     fireEvent.click(buttons[0])
     expect(mockNavigate).toHaveBeenCalledWith('/menu')
   })
@@ -280,7 +280,7 @@ describe('DashboardPage — US-DASH-3: AI recommendation preview', () => {
     getMock.mockImplementation(t6cImpl({ previews: manyPreviews }))
     render(<DashboardPage />, { wrapper })
     await waitFor(() => expect(screen.getByText('Dish One')).toBeInTheDocument())
-    const buttons = screen.getAllByRole('button', { name: /go to menu builder/i })
+    const buttons = screen.getAllByRole('button', { name: /build/i })
     expect(buttons).toHaveLength(3)
     expect(screen.queryByText('Dish Four')).toBeNull()
     expect(screen.queryByText('Dish Five')).toBeNull()
@@ -307,7 +307,7 @@ describe('DashboardPage — T-42: layout grid', () => {
     getMock.mockImplementation(layoutImpl)
     render(<DashboardPage />, { wrapper })
     await waitFor(() => {
-      expect(screen.getByText('Total Items')).toBeInTheDocument() // KPI row
+      expect(screen.getByText('Total items')).toBeInTheDocument() // KPI row
       expect(screen.getByText('Basil')).toBeInTheDocument() // alerts column
       expect(screen.getByText('Branzino Special')).toBeInTheDocument() // preview column
     })
@@ -324,7 +324,7 @@ describe('DashboardPage — T-42: layout grid', () => {
   it('no longer renders the unwired "Current inventory" panel (TodayDashboard retired — ADR 0009)', async () => {
     getMock.mockImplementation(layoutImpl)
     render(<DashboardPage />, { wrapper })
-    await waitFor(() => expect(screen.getByText('Total Items')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Total items')).toBeInTheDocument())
     expect(screen.queryByText('Current inventory')).toBeNull()
   })
 })
