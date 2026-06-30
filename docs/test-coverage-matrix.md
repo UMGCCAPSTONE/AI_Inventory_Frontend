@@ -1,7 +1,7 @@
 # Frontend Test Coverage Matrix
 
-**Last updated:** 2026-06-26  
-**Ticket:** T-20B — Frontend Test Coverage (placeholder specs for upcoming MVP pages)  
+**Last updated:** 2026-06-30  
+**Ticket:** T-20B — Frontend Test Coverage (placeholder specs for upcoming MVP pages); Menu Builder specs activated by T-8  
 **Harness:** Vitest + React Testing Library + jsdom (T-20A)
 
 ---
@@ -34,12 +34,14 @@
 | **Suppliers** | US-SUPP-1: Directory view | `src/pages/SuppliersPage.test.tsx` | ⏭ Skipped | T-9A / T-9B |
 | | US-SUPP-2: Add supplier | `src/pages/SuppliersPage.test.tsx` | ⏭ Skipped | T-9B |
 | | US-SUPP-3: Edit supplier | `src/pages/SuppliersPage.test.tsx` | ⏭ Skipped | T-9B |
-| **Menu Builder** | US-MENU-1: Layout & generate flow | `src/pages/MenuBuilderPage.test.tsx` | ⏭ Skipped | T-8A |
-| | US-MENU-2: Recommendation detail | `src/pages/MenuBuilderPage.test.tsx` | ⏭ Skipped | T-8B |
-| | US-MENU-3: Accept recommendation | `src/pages/MenuBuilderPage.test.tsx` | ⏭ Skipped | T-8B |
-| | US-MENU-4: Dismiss recommendation | `src/pages/MenuBuilderPage.test.tsx` | ⏭ Skipped | T-8B |
-| | US-MENU-5: Explanation modal | `src/pages/MenuBuilderPage.test.tsx` | ⏭ Skipped | T-8B |
-| | US-MENU-6: Empty state | `src/pages/MenuBuilderPage.test.tsx` | ⏭ Skipped | T-8A / T-8B |
+| | US-SUPP-4: Delivery history | `src/pages/SuppliersPage.test.tsx`, `src/components/SupplierDeliveryHistory.test.tsx` | ✅ Active | T-9S |
+| **Menu Builder** | US-MENU-1: Layout & generate flow | `src/pages/MenuBuilderPage.test.tsx` | ✅ Active | T-8A |
+| | US-MENU-2: Recommendation detail (incl. pricing) | `src/pages/MenuBuilderPage.test.tsx` | ✅ Active | T-8B |
+| | US-MENU-3: Accept recommendation | `src/pages/MenuBuilderPage.test.tsx` | ✅ Active | T-8B |
+| | US-MENU-4: Dismiss recommendation | `src/pages/MenuBuilderPage.test.tsx` | ✅ Active | T-8B |
+| | US-MENU-5: Save recommendation | `src/pages/MenuBuilderPage.test.tsx` | ✅ Active | T-8B |
+| | US-MENU-6: Empty & fallback state | `src/pages/MenuBuilderPage.test.tsx` | ✅ Active | T-8A / T-8B |
+| | ADR 0014: Kind-aware actions (EXISTING/ACCEPTED) | `src/pages/MenuBuilderPage.test.tsx` | ✅ Active | T-8B |
 | **Reports** | US-REP-1: KPI cards | `src/pages/ReportsPage.test.tsx` | ✅ Active | T-10A |
 | | US-REP-2: Category summary table | `src/pages/ReportsPage.test.tsx` | ⏭ Skipped | T-10B |
 | | US-REP-3: Recommendation history | `src/pages/ReportsPage.test.tsx` | ⏭ Skipped | T-10C |

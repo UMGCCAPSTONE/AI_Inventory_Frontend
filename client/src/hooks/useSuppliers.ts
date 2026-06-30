@@ -5,6 +5,8 @@ import type {
 } from '@umgccapstone/contracts'
 import {
   createSupplier,
+  fetchRecentDeliveries,
+  fetchSupplierDeliveries,
   fetchSuppliers,
   invalidateAfterWrite,
   queryKeys,
@@ -38,5 +40,28 @@ export function useUpdateSupplier() {
     mutationFn: ({ id, input }: { id: string; input: UpdateSupplierInput }) =>
       updateSupplier(id, input),
     onSuccess: () => invalidateAfterWrite(queryClient, 'supplier.update'),
+  })
+}
+
+// Delivery history query (T-9S). Disabled until a supplierId is provided so
+// no fetch fires before the user opens the drawer for a specific supplier.
+export function useSupplierDeliveries(supplierId: string | undefined) {
+  return useQuery({
+    queryKey: supplierId
+      ? queryKeys.suppliers.deliveries(supplierId)
+      : (['suppliers', 'deliveries', 'none'] as const),
+    queryFn: () => fetchSupplierDeliveries(supplierId!),
+    enabled: !!supplierId,
+  })
+}
+
+// Cross-supplier recent deliveries query (T-9S mockup). Powers the Recent
+// Orders table, Spend by Supplier chart, and Upcoming Deliveries sidebar on
+// the Supplier Network page. Gracefully returns [] if the backend endpoint
+// is not yet live.
+export function useRecentDeliveries() {
+  return useQuery({
+    queryKey: queryKeys.suppliers.recentDeliveries,
+    queryFn: fetchRecentDeliveries,
   })
 }

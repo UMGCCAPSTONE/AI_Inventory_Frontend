@@ -3,6 +3,7 @@ import type {
   Supplier,
   UpdateSupplierInput,
 } from '@umgccapstone/contracts'
+import type { CrossSupplierDelivery, Delivery } from '../types'
 import { apiClient } from './apiClient'
 
 // Suppliers service (T-14 API). The inventory grid uses the list to resolve an
@@ -25,4 +26,19 @@ export async function updateSupplier(
   input: UpdateSupplierInput,
 ): Promise<Supplier> {
   return apiClient.patch<Supplier>(`/suppliers/${id}`, input)
+}
+
+// Fetch delivery history for a supplier (T-9S). Falls back to an empty array
+// when the backend returns nothing (endpoint not yet live returns 404 → error
+// state; empty array → empty state).
+export async function fetchSupplierDeliveries(supplierId: string): Promise<Delivery[]> {
+  return (await apiClient.get<Delivery[]>(`/suppliers/${supplierId}/deliveries`)) ?? []
+}
+
+// Fetch cross-supplier recent deliveries (T-9S mockup). Used by the Supplier
+// Network page's Recent Orders table, Spend by Supplier chart, and Upcoming
+// Deliveries sidebar. Degrades to an empty array until the backend ships the
+// endpoint (404 → error state is caught by the hook's isError flag).
+export async function fetchRecentDeliveries(): Promise<CrossSupplierDelivery[]> {
+  return (await apiClient.get<CrossSupplierDelivery[]>('/deliveries/recent')) ?? []
 }

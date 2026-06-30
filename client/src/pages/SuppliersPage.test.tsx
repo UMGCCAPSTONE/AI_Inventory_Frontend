@@ -4,10 +4,16 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { Supplier } from '@umgccapstone/contracts'
 import SuppliersPage from './SuppliersPage'
-import { fetchSuppliers, createSupplier, updateSupplier } from '../services/suppliers'
+import {
+  fetchSuppliers,
+  createSupplier,
+  updateSupplier,
+  fetchSupplierDeliveries,
+  fetchRecentDeliveries,
+} from '../services/suppliers'
 
-// Stub @mui/x-data-grid (same module-resolution issue as SupplierDirectory.test)
-// but honor renderCell so the per-row Edit action is present and clickable.
+// Stub @mui/x-data-grid — still needed for SupplierDeliveryHistory's DataGrid
+// that renders inside the drawer when a supplier's "View" button is clicked.
 vi.mock('@mui/x-data-grid', () => ({
   DataGrid: ({
     rows,
@@ -41,11 +47,15 @@ vi.mock('../services/suppliers', () => ({
   fetchSuppliers: vi.fn(),
   createSupplier: vi.fn(),
   updateSupplier: vi.fn(),
+  fetchSupplierDeliveries: vi.fn(),
+  fetchRecentDeliveries: vi.fn(),
 }))
 
 const mockFetch = vi.mocked(fetchSuppliers)
 const mockCreate = vi.mocked(createSupplier)
 const mockUpdate = vi.mocked(updateSupplier)
+const mockFetchDeliveries = vi.mocked(fetchSupplierDeliveries)
+const mockFetchRecent = vi.mocked(fetchRecentDeliveries)
 
 const suppliers: Supplier[] = [
   {
@@ -83,6 +93,11 @@ beforeEach(() => {
   mockFetch.mockReset()
   mockCreate.mockReset()
   mockUpdate.mockReset()
+  mockFetchDeliveries.mockReset()
+  mockFetchRecent.mockReset()
+  // Seed cross-supplier deliveries with an empty array by default so all tests
+  // that don't care about the sidebar widgets stay green without extra setup.
+  mockFetchRecent.mockResolvedValue([])
 })
 
 describe('SuppliersPage — US-SUPP-1: supplier directory view', () => {
@@ -228,5 +243,85 @@ describe('SuppliersPage — US-SUPP-3: edit supplier', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect(await screen.findByText(/supplier updated/i)).toBeInTheDocument()
     expect(await screen.findByText('Acme Renamed')).toBeInTheDocument()
+  })
+})
+
+describe('SuppliersPage — US-SUPP-4: delivery history', () => {
+  it('shows a History button for each supplier row', async () => {
+    mockFetch.mockResolvedValue(suppliers)
+    mockFetchDeliveries.mockResolvedValue([])
+    renderPage()
+    await screen.findByText('Acme Produce')
+
+    expect(screen.getByRole('button', { name: 'View delivery history for Acme Produce' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'View delivery history for Best Meats' })).toBeInTheDocument()
+  })
+
+  it('opens the delivery history drawer for the clicked supplier', async () => {
+    mockFetch.mockResolvedValue(suppliers)
+    mockFetchDeliveries.mockResolvedValue([])
+    renderPage()
+    await screen.findByText('Acme Produce')
+
+    fireEvent.click(screen.getByRole('button', { name: 'View delivery history for Acme Produce' }))
+
+    expect(await screen.findByText('Delivery history')).toBeInTheDocument()
+    expect(await screen.findByText(/no deliveries yet/i)).toBeInTheDocument()
+    expect(mockFetchDeliveries).toHaveBeenCalledWith('1')
+  })
+
+  it('shows the supplier name in the drawer header', async () => {
+    mockFetch.mockResolvedValue(suppliers)
+    mockFetchDeliveries.mockResolvedValue([])
+    renderPage()
+    await screen.findByText('Acme Produce')
+
+    fireEvent.click(screen.getByRole('button', { name: 'View delivery history for Acme Produce' }))
+
+    expect(await screen.findByText('Delivery history')).toBeInTheDocument()
+  })
+
+  it('shows delivery rows with date, item count, and amount on success', async () => {
+    mockFetch.mockResolvedValue(suppliers)
+    mockFetchDeliveries.mockResolvedValue([
+      {
+        id: 'd1',
+        supplierId: '1',
+        deliveryDate: '2026-06-01T00:00:00.000Z',
+        items: [
+          { name: 'Tomatoes', quantity: 10 },
+          { name: 'Lettuce', quantity: 5 },
+        ],
+        totalAmount: 85.0,
+      },
+    ])
+    renderPage()
+    await screen.findByText('Acme Produce')
+
+    fireEvent.click(screen.getByRole('button', { name: 'View delivery history for Acme Produce' }))
+
+    expect(await screen.findByText('2 items')).toBeInTheDocument()
+  })
+
+  it('shows empty state when no delivery history exists', async () => {
+    mockFetch.mockResolvedValue(suppliers)
+    mockFetchDeliveries.mockResolvedValue([])
+    renderPage()
+    await screen.findByText('Acme Produce')
+
+    fireEvent.click(screen.getByRole('button', { name: 'View delivery history for Acme Produce' }))
+
+    expect(await screen.findByText(/no deliveries yet/i)).toBeInTheDocument()
+  })
+
+  it('shows error state when the delivery history API call fails', async () => {
+    mockFetch.mockResolvedValue(suppliers)
+    mockFetchDeliveries.mockRejectedValue(new Error('Network error'))
+    renderPage()
+    await screen.findByText('Acme Produce')
+
+    fireEvent.click(screen.getByRole('button', { name: 'View delivery history for Acme Produce' }))
+
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
   })
 })

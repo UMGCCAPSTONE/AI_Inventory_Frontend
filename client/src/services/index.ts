@@ -7,7 +7,12 @@ export {
   fetchDashboardAlerts,
   fetchRecommendationPreviews,
 } from './dashboard'
-export { fetchRecommendationAvailability } from './menu'
+export { fetchRecommendationAvailability, fetchMenuItems, createMenuItem } from './menu'
+export {
+  fetchRecommendations,
+  generateRecommendations,
+  updateRecommendationStatus,
+} from './recommendations'
 export {
   fetchInventory,
   fetchAllInventory,
@@ -16,7 +21,7 @@ export {
   deleteInventoryItem,
 } from './inventory'
 export type { InventoryPage } from './inventory'
-export { fetchSuppliers, createSupplier, updateSupplier } from './suppliers'
+export { fetchSuppliers, createSupplier, updateSupplier, fetchSupplierDeliveries, fetchRecentDeliveries } from './suppliers'
 export { queryKeys } from './queryKeys'
 export { apiClient, setAuthHandlers } from './apiClient'
 export { firebaseAuth, isFirebaseConfigured } from './firebase'

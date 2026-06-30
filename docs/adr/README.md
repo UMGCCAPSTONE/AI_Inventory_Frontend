@@ -15,6 +15,9 @@ Decisions for the AI/LLM Inventory Management frontend, in [MADR](https://adr.gi
 | [0004](./0004-query-key-registry-invalidation-map.md) | Client data layer: query-key registry + write→invalidate map (T-34) | Accepted |
 | [0005](./0005-four-required-ui-states.md) | Every data-driven view renders four required UI states | Accepted |
 | [0006](./0006-frontend-first-contract-authorship.md) | Frontend-first contract authorship | Accepted |
+| [0007](./0007-dashboard-page-wrapper.md) | DashboardPage wrapper component owns dashboard layout | Accepted (composition superseded by 0009) |
+| [0008](./0008-recommendation-preview-two-query-split.md) | Recommendation preview: two-query split for content and availability | Accepted |
+| [0009](./0009-dashboard-retires-unwired-today-panel.md) | Dashboard retires the unwired TodayDashboard panel | Accepted |
 
 ## Shared / cross-repo → [`shared/`](./shared/)
 
