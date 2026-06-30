@@ -3,6 +3,7 @@ import { Box, IconButton, Stack, Typography } from '@mui/material'
 import type { MenuItem } from '@umgccapstone/contracts'
 import { useMenuItems } from '../hooks'
 import { EmptyState, ErrorState, LoadingState } from './states'
+import { CARD_TINTS_PLUS } from '../utils/cardTints'
 
 function initials(name: string): string {
   return name
@@ -95,7 +96,7 @@ export default function SpecialsCarousel() {
             '&:focus-visible': { outline: '2px solid var(--terra)', outlineOffset: 3 },
           }}
         >
-          {specials.map((item) => {
+          {specials.map((item, i) => {
             const status = dishStatus(item)
             return (
               <Box
@@ -113,7 +114,7 @@ export default function SpecialsCarousel() {
                 <Box
                   sx={{
                     height: 72,
-                    bgcolor: 'var(--surface-2)',
+                    bgcolor: CARD_TINTS_PLUS[i % CARD_TINTS_PLUS.length],
                     display: 'grid',
                     placeItems: 'center',
                   }}
