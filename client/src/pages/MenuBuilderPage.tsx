@@ -10,6 +10,7 @@ import {
   DialogContentText,
   DialogTitle,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material'
 import type { MenuItem, RecommendationStatus } from '@umgccapstone/contracts'
@@ -45,6 +46,9 @@ const cardGrid = {
   gridTemplateColumns: { xs: '1fr', md: '1fr 1fr', lg: '1fr 1fr 1fr' },
 } as const
 
+// Section heading style — Fraunces display, matching the redesign mockups.
+const sectionTitleSx = { fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 26 } as const
+
 // Menu Builder (T-8). AI-generated recommendations (specials) you generate then
 // accept/dismiss/save, plus the current (regular) menu. Every section renders the
 // four required UI states (ADR 0005); server-computed fields are shown as-is (ADR
@@ -53,6 +57,7 @@ function MenuBuilderPage() {
   const [recFilter, setRecFilter] = useState<RecFilter>('active')
   const [addDishOpen, setAddDishOpen] = useState(false)
   const [removeTarget, setRemoveTarget] = useState<MenuItem | null>(null)
+  const [menuSearch, setMenuSearch] = useState('')
 
   const generate = useGenerateRecommendations()
   const recommendations = useRecommendations()
@@ -71,6 +76,10 @@ function MenuBuilderPage() {
 
   const allRecs = recommendations.data ?? []
   const activeMenu = (menuItems.data ?? []).filter((item) => item.status === 'ACTIVE')
+  const menuQuery = menuSearch.trim().toLowerCase()
+  const filteredMenu = menuQuery
+    ? activeMenu.filter((item) => item.name.toLowerCase().includes(menuQuery))
+    : activeMenu
   // Subtitle count: the AI-generated queue (PROPOSED). Accepted dishes are now
   // menu items and are counted as such, not double-counted as specials.
   const specialsCount = allRecs.filter((r) => r.status === 'PROPOSED').length
@@ -102,7 +111,7 @@ function MenuBuilderPage() {
     <Box
       component="section"
       aria-label="Menu Builder"
-      sx={{ maxWidth: 1390, mx: 'auto', px: { xs: 2, md: 4.5 }, py: 4 }}
+      sx={{ maxWidth: 1440, mx: 'auto', px: { xs: 2, md: 4.5 }, py: 4 }}
     >
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
@@ -110,7 +119,7 @@ function MenuBuilderPage() {
         sx={{ justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' } }}
       >
         <Box>
-          <Typography variant="h4" component="h1">
+          <Typography variant="h3" component="h1">
             Menu Builder
           </Typography>
           <Typography variant="body2" color="text.secondary">
@@ -136,11 +145,11 @@ function MenuBuilderPage() {
       ) : null}
 
       <Box component="section" aria-label="AI recommendations" sx={{ mt: 4 }}>
-        <Typography variant="h5" component="h2">
+        <Typography component="h2" sx={sectionTitleSx}>
           AI Suggested Specials
         </Typography>
         <Typography variant="body2" color="text.secondary" gutterBottom>
-          Based on expiring inventory
+          Top picks based on expiring inventory
         </Typography>
 
         <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
@@ -184,7 +193,7 @@ function MenuBuilderPage() {
       </Box>
 
       <Box component="section" aria-label="Current menu" sx={{ mt: 5 }}>
-        <Typography variant="h5" component="h2" gutterBottom>
+        <Typography component="h2" sx={{ ...sectionTitleSx, mb: 2 }}>
           Current menu
         </Typography>
         {menuItems.isPending ? (
@@ -197,22 +206,39 @@ function MenuBuilderPage() {
             description="Accepted recommendations appear here. Add a dish or accept an AI special to get started."
           />
         ) : (
-          <Box sx={cardGrid}>
-            {activeMenu.map((item) => (
-              <MenuItemCard
-                key={item.id}
-                item={item}
-                onRemove={() => setRemoveTarget(item)}
-                onToggleSpecial={() =>
-                  updateMenuItem.mutate({ id: item.id, input: { isSpecial: !item.isSpecial } })
-                }
-                busy={
-                  (archiveMenuItem.isPending && archiveMenuItem.variables === item.id) ||
-                  (updateMenuItem.isPending && updateMenuItem.variables?.id === item.id)
-                }
+          <>
+            <TextField
+              placeholder="Search dishes…"
+              size="small"
+              value={menuSearch}
+              onChange={(e) => setMenuSearch(e.target.value)}
+              slotProps={{ htmlInput: { 'aria-label': 'Search dishes' } }}
+              sx={{ mb: 2, maxWidth: 380 }}
+            />
+            {filteredMenu.length === 0 ? (
+              <EmptyState
+                title="No dishes match your search"
+                description="Try a different name or clear the search."
               />
-            ))}
-          </Box>
+            ) : (
+              <Box sx={cardGrid}>
+                {filteredMenu.map((item) => (
+                  <MenuItemCard
+                    key={item.id}
+                    item={item}
+                    onRemove={() => setRemoveTarget(item)}
+                    onToggleSpecial={() =>
+                      updateMenuItem.mutate({ id: item.id, input: { isSpecial: !item.isSpecial } })
+                    }
+                    busy={
+                      (archiveMenuItem.isPending && archiveMenuItem.variables === item.id) ||
+                      (updateMenuItem.isPending && updateMenuItem.variables?.id === item.id)
+                    }
+                  />
+                ))}
+              </Box>
+            )}
+          </>
         )}
       </Box>
 
