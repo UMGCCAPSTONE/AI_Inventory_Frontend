@@ -178,6 +178,27 @@ describe('MenuBuilderPage — US-MENU-2: recommendation detail', () => {
     expect(screen.getByRole('article', { name: 'Stew' })).toBeInTheDocument()
   })
 
+  it('caps AI Suggested Specials at 6 (newest first) with a See all toggle (T-72)', async () => {
+    const recs = Array.from({ length: 8 }, (_, i) =>
+      makeRec({
+        id: `r${i}`,
+        name: `Special ${i}`,
+        status: 'PROPOSED',
+        createdAt: `2026-01-0${i + 1}T00:00:00.000Z`,
+      }),
+    )
+    respondWith({ recommendations: recs })
+    render(<MenuBuilderPage />, { wrapper })
+
+    // Newest first: Special 7 shows; the two oldest are capped out of the feed.
+    await screen.findByRole('article', { name: 'Special 7' })
+    expect(screen.queryByRole('article', { name: 'Special 0' })).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: /see all 8/i }))
+
+    expect(await screen.findByRole('article', { name: 'Special 0' })).toBeInTheDocument()
+  })
+
   it('displays availability from isAvailable — does not recompute from stock', async () => {
     respondWith({
       recommendations: [makeRec({ isAvailable: false, limitingIngredientId: 'inv-tomato' })],

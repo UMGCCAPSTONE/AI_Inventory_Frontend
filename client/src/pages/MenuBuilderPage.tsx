@@ -78,6 +78,7 @@ function MenuBuilderPage() {
   const [expandedCats, setExpandedCats] = useState<Set<MenuCategory>>(new Set())
   // Which inventory the generator draws from (#66): at-risk stock or everything.
   const [scope, setScope] = useState<RecommendationScope>('at-risk')
+  const [showAllSpecials, setShowAllSpecials] = useState(false)
 
   const generate = useGenerateRecommendations()
   const recommendations = useRecommendations()
@@ -132,7 +133,11 @@ function MenuBuilderPage() {
   const specialsCount = allRecs.filter((r) => r.status === 'PROPOSED').length
 
   const filterStatuses = REC_FILTERS.find((f) => f.key === recFilter)!.statuses
-  const visibleRecs = allRecs.filter((r) => filterStatuses.includes(r.status))
+  // Newest first, capped with a See more toggle (like the current menu).
+  const visibleRecs = allRecs
+    .filter((r) => filterStatuses.includes(r.status))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const shownRecs = showAllSpecials ? visibleRecs : visibleRecs.slice(0, MENU_CAP)
 
   const generateButton = (
     <Button
@@ -224,7 +229,10 @@ function MenuBuilderPage() {
             <Chip
               key={f.key}
               label={f.label}
-              onClick={() => setRecFilter(f.key)}
+              onClick={() => {
+                setRecFilter(f.key)
+                setShowAllSpecials(false)
+              }}
               color={recFilter === f.key ? 'primary' : 'default'}
               variant={recFilter === f.key ? 'filled' : 'outlined'}
             />
@@ -245,17 +253,26 @@ function MenuBuilderPage() {
             action={recFilter === 'active' ? generateButton : undefined}
           />
         ) : (
-          <Box sx={cardGrid}>
-            {visibleRecs.map((rec, index) => (
-              <RecommendationCard
-                key={rec.id}
-                recommendation={rec}
-                tone={index}
-                pending={statusMutation.isPending && statusMutation.variables?.id === rec.id}
-                onAction={(status) => statusMutation.mutate({ id: rec.id, status })}
-              />
-            ))}
-          </Box>
+          <>
+            <Box sx={cardGrid}>
+              {shownRecs.map((rec, index) => (
+                <RecommendationCard
+                  key={rec.id}
+                  recommendation={rec}
+                  tone={index}
+                  pending={statusMutation.isPending && statusMutation.variables?.id === rec.id}
+                  onAction={(status) => statusMutation.mutate({ id: rec.id, status })}
+                />
+              ))}
+            </Box>
+            {visibleRecs.length > MENU_CAP ? (
+              <Box sx={{ mt: 2 }}>
+                <Button onClick={() => setShowAllSpecials((open) => !open)}>
+                  {showAllSpecials ? 'See less' : `See all ${visibleRecs.length}`}
+                </Button>
+              </Box>
+            ) : null}
+          </>
         )}
       </Box>
 

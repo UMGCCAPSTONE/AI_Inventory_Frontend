@@ -52,7 +52,7 @@ function InventoryDataGrid({ onEdit, onDelete }: InventoryDataGridProps) {
   const [sort, setSort] = useState<InventorySort>('name')
   const [order, setOrder] = useState<'asc' | 'desc'>('asc')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(10)
 
   const search = useDebounce(searchInput, 300)
 
