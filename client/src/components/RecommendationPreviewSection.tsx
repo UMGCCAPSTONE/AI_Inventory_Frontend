@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useRecommendationPreviews, useRecommendationAvailability } from '../hooks'
 import type { RecommendationAvailability } from '../types'
 import { EmptyState, ErrorState, LoadingState } from './states'
+import { CARD_TINTS } from '../utils/cardTints'
 
 // Dashboard "AI Recommendations" panel (T-6C). Shows the saved-recommendation
 // preview (SAVED-only, ADR 0008) restyled to the redesign (docs/mockups/). Each
@@ -49,16 +50,15 @@ export default function RecommendationPreviewSection() {
           description="Saved AI specials appear here once you save them from the Menu Builder."
         />
       ) : (
-        <Stack spacing={1.5}>
-          {previews.slice(0, 3).map((rec) => {
+        <Stack spacing={1}>
+          {previews.slice(0, 3).map((rec, i) => {
             const avail = availabilityById.get(rec.id)
             return (
               <Box
                 key={rec.id}
                 sx={{
-                  border: '1px solid var(--hairline)',
-                  borderRadius: 2,
-                  bgcolor: 'var(--surface-2)',
+                  borderRadius: 1.5,
+                  bgcolor: CARD_TINTS[i % CARD_TINTS.length],
                   p: 2,
                 }}
               >
@@ -92,7 +92,7 @@ export default function RecommendationPreviewSection() {
                   </Box>
                 ) : null}
                 <Button
-                  onClick={() => navigate('/menu')}
+                  onClick={() => navigate('/menu?tab=saved')}
                   sx={{
                     mt: 1,
                     px: 0,
@@ -107,6 +107,14 @@ export default function RecommendationPreviewSection() {
               </Box>
             )
           })}
+          {previews.length > 3 ? (
+            <Button
+              onClick={() => navigate('/menu?tab=saved')}
+              sx={{ mt: 1, alignSelf: 'flex-start', fontSize: 12.5, fontWeight: 600 }}
+            >
+              View all {previews.length} saved →
+            </Button>
+          ) : null}
         </Stack>
       )}
     </Paper>

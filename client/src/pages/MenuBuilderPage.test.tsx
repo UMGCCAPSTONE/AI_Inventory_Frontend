@@ -306,6 +306,24 @@ describe('MenuBuilderPage — current menu section', () => {
     expect(screen.queryByText('Old Special')).toBeNull()
   })
 
+  it('caps the current menu at 6 (newest first) with a See more toggle (T-72)', async () => {
+    const items = Array.from({ length: 8 }, (_, i) =>
+      makeMenuItem({ id: `m${i}`, name: `Dish ${i}`, createdAt: `2026-01-0${i + 1}T00:00:00.000Z` }),
+    )
+    respondWith({ menu: items })
+    render(<MenuBuilderPage />, { wrapper })
+
+    // Newest first: Dish 7 (Jan 8) shows; the two oldest are capped out.
+    await screen.findByText('Dish 7')
+    expect(screen.queryByText('Dish 1')).toBeNull()
+    expect(screen.queryByText('Dish 0')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: /see more \(2\)/i }))
+
+    expect(await screen.findByText('Dish 0')).toBeInTheDocument()
+    expect(screen.getByText('Dish 1')).toBeInTheDocument()
+  })
+
   it('deletes a dish via the kebab + confirm dialog — PATCH status ARCHIVED (T-72)', async () => {
     respondWith({ menu: [makeMenuItem({ id: 'm1', name: 'House Salad' })] })
     patchMock.mockResolvedValue(makeMenuItem({ id: 'm1', status: 'ARCHIVED' }))
@@ -358,6 +376,19 @@ describe('MenuBuilderPage — saved/history filter (T-8S folded)', () => {
     fireEvent.click(screen.getByText('Saved'))
     expect(await screen.findByRole('article', { name: 'Saved One' })).toBeInTheDocument()
     expect(screen.queryByRole('article', { name: 'Active One' })).toBeNull()
+  })
+
+  it('un-saves a saved recommendation back to PROPOSED (T-72)', async () => {
+    respondWith({ recommendations: [makeRec({ id: 'r1', name: 'Saved One', status: 'SAVED' })] })
+    patchMock.mockResolvedValue(makeRec({ id: 'r1', status: 'PROPOSED' }))
+    render(<MenuBuilderPage />, { wrapper })
+
+    fireEvent.click(screen.getByText('Saved'))
+    fireEvent.click(await screen.findByRole('button', { name: 'Unsave' }))
+
+    await waitFor(() =>
+      expect(patchMock).toHaveBeenCalledWith('/recommendations/r1', { status: 'PROPOSED' }),
+    )
   })
 })
 

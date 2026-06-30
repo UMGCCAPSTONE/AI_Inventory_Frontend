@@ -258,7 +258,7 @@ describe('DashboardPage — US-DASH-3: AI recommendation preview', () => {
     render(<DashboardPage />, { wrapper })
     const buttons = await screen.findAllByRole('button', { name: /build/i })
     fireEvent.click(buttons[0])
-    expect(mockNavigate).toHaveBeenCalledWith('/menu')
+    expect(mockNavigate).toHaveBeenCalledWith('/menu?tab=saved')
   })
 
   it('shows the empty state when the recommendations list is empty', async () => {

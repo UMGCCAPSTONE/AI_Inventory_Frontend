@@ -49,15 +49,28 @@ const cardGrid = {
 // Section heading style — Fraunces display, matching the redesign mockups.
 const sectionTitleSx = { fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 26 } as const
 
+// Current-menu list is shown newest-first and capped, with a "See more" toggle.
+// (The mockup's per-category soft cap of 6 needs MenuItem.category from #66; until
+// then we cap the flat list the same way.)
+const MENU_CAP = 6
+
+// Initial specials filter from the URL (?tab=saved|dismissed), so the dashboard
+// preview's "Build" / "View all" links open the Saved tab directly.
+function initialRecFilter(): RecFilter {
+  const tab = new URLSearchParams(window.location.search).get('tab')
+  return tab === 'saved' || tab === 'dismissed' ? tab : 'active'
+}
+
 // Menu Builder (T-8). AI-generated recommendations (specials) you generate then
 // accept/dismiss/save, plus the current (regular) menu. Every section renders the
 // four required UI states (ADR 0005); server-computed fields are shown as-is (ADR
 // 0004). Saved/history recommendations are reachable via the filter.
 function MenuBuilderPage() {
-  const [recFilter, setRecFilter] = useState<RecFilter>('active')
+  const [recFilter, setRecFilter] = useState<RecFilter>(initialRecFilter)
   const [addDishOpen, setAddDishOpen] = useState(false)
   const [removeTarget, setRemoveTarget] = useState<MenuItem | null>(null)
   const [menuSearch, setMenuSearch] = useState('')
+  const [showAllMenu, setShowAllMenu] = useState(false)
 
   const generate = useGenerateRecommendations()
   const recommendations = useRecommendations()
@@ -75,11 +88,15 @@ function MenuBuilderPage() {
   }
 
   const allRecs = recommendations.data ?? []
-  const activeMenu = (menuItems.data ?? []).filter((item) => item.status === 'ACTIVE')
+  // Newest dishes first (most recent at the top).
+  const activeMenu = (menuItems.data ?? [])
+    .filter((item) => item.status === 'ACTIVE')
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   const menuQuery = menuSearch.trim().toLowerCase()
   const filteredMenu = menuQuery
     ? activeMenu.filter((item) => item.name.toLowerCase().includes(menuQuery))
     : activeMenu
+  const visibleMenu = showAllMenu ? filteredMenu : filteredMenu.slice(0, MENU_CAP)
   // Subtitle count: the AI-generated queue (PROPOSED). Accepted dishes are now
   // menu items and are counted as such, not double-counted as specials.
   const specialsCount = allRecs.filter((r) => r.status === 'PROPOSED').length
@@ -221,22 +238,33 @@ function MenuBuilderPage() {
                 description="Try a different name or clear the search."
               />
             ) : (
-              <Box sx={cardGrid}>
-                {filteredMenu.map((item) => (
-                  <MenuItemCard
-                    key={item.id}
-                    item={item}
-                    onRemove={() => setRemoveTarget(item)}
-                    onToggleSpecial={() =>
-                      updateMenuItem.mutate({ id: item.id, input: { isSpecial: !item.isSpecial } })
-                    }
-                    busy={
-                      (archiveMenuItem.isPending && archiveMenuItem.variables === item.id) ||
-                      (updateMenuItem.isPending && updateMenuItem.variables?.id === item.id)
-                    }
-                  />
-                ))}
-              </Box>
+              <>
+                <Box sx={cardGrid}>
+                  {visibleMenu.map((item) => (
+                    <MenuItemCard
+                      key={item.id}
+                      item={item}
+                      onRemove={() => setRemoveTarget(item)}
+                      onToggleSpecial={() =>
+                        updateMenuItem.mutate({ id: item.id, input: { isSpecial: !item.isSpecial } })
+                      }
+                      busy={
+                        (archiveMenuItem.isPending && archiveMenuItem.variables === item.id) ||
+                        (updateMenuItem.isPending && updateMenuItem.variables?.id === item.id)
+                      }
+                    />
+                  ))}
+                </Box>
+                {filteredMenu.length > MENU_CAP ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                    <Button onClick={() => setShowAllMenu((open) => !open)}>
+                      {showAllMenu
+                        ? 'See less'
+                        : `See more (${filteredMenu.length - MENU_CAP})`}
+                    </Button>
+                  </Box>
+                ) : null}
+              </>
             )}
           </>
         )}
