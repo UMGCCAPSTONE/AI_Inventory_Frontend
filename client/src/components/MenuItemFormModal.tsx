@@ -18,11 +18,13 @@ import {
 } from '@mui/material'
 import {
   createMenuItemInputSchema,
+  menuCategorySchema,
   unitSchema,
   type CreateMenuItemInput,
   type InventoryItem,
 } from '@umgccapstone/contracts'
 import { useCreateMenuItem } from '../hooks'
+import { MENU_CATEGORY_LABELS } from '../utils/menuCategories'
 import { ApiError } from '../types/api'
 
 type MenuItemFormModalProps = {
@@ -36,6 +38,7 @@ const EMPTY_INGREDIENT = { inventoryItemId: '', name: '', quantity: 1, unit: 'ea
 
 const ADD_DEFAULTS: CreateMenuItemInput = {
   name: '',
+  category: 'MAIN',
   isSpecial: false,
   status: 'ACTIVE',
   ingredients: [EMPTY_INGREDIENT],
@@ -98,6 +101,28 @@ function MenuItemFormModal({ open, onClose, inventoryItems }: MenuItemFormModalP
               {...register('name')}
             />
             <TextField label="Description" fullWidth multiline minRows={2} {...register('description')} />
+            <Controller
+              name="category"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  select
+                  label="Category"
+                  required
+                  fullWidth
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={Boolean(errors.category)}
+                  helperText={errors.category?.message}
+                >
+                  {menuCategorySchema.options.map((c) => (
+                    <MenuItem key={c} value={c}>
+                      {MENU_CATEGORY_LABELS[c]}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
+            />
             <Controller
               name="isSpecial"
               control={control}

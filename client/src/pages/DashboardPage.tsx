@@ -1,21 +1,31 @@
+import { Box } from '@mui/material'
 import DashboardHeader from '../components/DashboardHeader'
 import AlertsSection from '../components/AlertsSection'
 import RecommendationPreviewSection from '../components/RecommendationPreviewSection'
+import SpecialsCarousel from '../components/SpecialsCarousel'
 
-// Dashboard layout (T-42, ADR 0007 + ADR 0009). Mockup grid:
-//   - top:    DashboardHeader — greeting + the four KPI cards (T-6A)
-//   - middle: two columns — Urgent Alerts (T-6B) | AI recommendation preview (T-6C)
-// Each section owns its own four UI states (ADR 0005); this wrapper only arranges
-// them. TodayDashboard (an unwired T-0 stub that always rendered empty and
-// duplicated the Inventory page) is retired here — see ADR 0009.
+// Dashboard (Today) — redesign layout (docs/mockups/dashboard.html):
+//   - hero greeting + 4-up KPI bar (DashboardHeader)
+//   - two-column grid: Alerts | AI Recommendations (saved-recs preview)
+//   - "Tonight's Specials" carousel (isSpecial dishes)
+// Each section owns its own loading/error/empty states (ADR 0005).
 export default function DashboardPage() {
   return (
-    <div className="dashboard-page">
+    <Box sx={{ maxWidth: 1440, mx: 'auto', px: { xs: 2, md: 4.5 }, py: 4 }}>
       <DashboardHeader />
-      <div className="dashboard-columns" data-testid="dashboard-columns">
+      <Box
+        data-testid="dashboard-columns"
+        sx={{
+          display: 'grid',
+          gap: 3,
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+          alignItems: 'start',
+        }}
+      >
         <AlertsSection />
         <RecommendationPreviewSection />
-      </div>
-    </div>
+      </Box>
+      <SpecialsCarousel />
+    </Box>
   )
 }

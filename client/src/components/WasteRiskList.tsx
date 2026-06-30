@@ -1,5 +1,4 @@
 import { Box, List, ListItem, ListItemText, Typography } from '@mui/material'
-import { alpha } from '@mui/material/styles'
 import type { InventoryItem } from '@umgccapstone/contracts'
 import { EmptyState, ErrorState, LoadingState } from './states'
 import FadedChip from './FadedChip'
@@ -66,15 +65,16 @@ function WasteRiskList() {
               </Typography>
               <FadedChip label={severity.label} color={severity.color} />
             </Box>
-            <Box sx={{ mt: 0.75, height: 8, borderRadius: 1, bgcolor: 'action.hover', overflow: 'hidden' }}>
+            <Box
+              sx={{ mt: 0.875, height: 7, borderRadius: 999, bgcolor: 'var(--surface-2)', overflow: 'hidden' }}
+            >
               <Box
-                sx={(theme) => ({
+                sx={{
                   height: '100%',
                   width: `${(item.atRiskValue / maxValue) * 100}%`,
-                  // Shades of red keyed to magnitude: the biggest exposure is the
-                  // deepest red, smaller ones fade toward a lighter red.
-                  bgcolor: alpha(theme.palette.error.main, 0.4 + 0.6 * (item.atRiskValue / maxValue)),
-                })}
+                  bgcolor: 'var(--waste)',
+                  borderRadius: 999,
+                }}
               />
             </Box>
           </ListItem>

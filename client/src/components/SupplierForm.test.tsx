@@ -10,6 +10,7 @@ const supplier: Supplier = {
   email: 'jane@acme.test',
   phone: '555-0100',
   deliveryCadence: 'Weekly',
+  totalSpend: 1250,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
 }

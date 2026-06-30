@@ -25,7 +25,7 @@
   border-radius: 50%;
   background: var(--ink);
   color: #fff9ec;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 18px;
   font-style: italic;
   font-weight: 700;
@@ -41,7 +41,7 @@
 
 .brand-name {
   color: var(--ink);
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 30px;
   font-weight: 700;
   line-height: 1;
@@ -49,7 +49,7 @@
 
 .brand-tagline {
   color: var(--muted);
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 15px;
   font-style: italic;
   line-height: 1;
@@ -131,7 +131,7 @@
 
 .service-pill strong {
   color: var(--ink);
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 19px;
   font-style: italic;
   line-height: 1;
@@ -188,7 +188,7 @@ main {
   max-width: 700px;
   margin: 0 0 14px;
   color: var(--ink);
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 54px;
   font-weight: 500;
   letter-spacing: 0;
@@ -281,7 +281,7 @@ main {
 .metric-value {
   display: block;
   color: var(--ink);
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 33px;
   font-weight: 700;
   letter-spacing: 0;
@@ -366,7 +366,7 @@ main {
 .specials-heading h2 {
   margin: 0;
   color: var(--ink);
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 27px;
   line-height: 1;
 }
@@ -475,7 +475,7 @@ main {
 .special-card h3 {
   margin: 0;
   color: var(--ink);
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 19px;
   line-height: 1.05;
 }
@@ -504,7 +504,7 @@ main {
 }
 
 .item-urgency strong {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 24px;
   line-height: 1;
 }
@@ -564,7 +564,7 @@ main {
   border-radius: 50%;
   background: var(--ink);
   color: #fff8ea;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 20px;
   font-style: italic;
   font-weight: 700;
@@ -626,7 +626,7 @@ main {
   min-height: 44px;
   margin: 8px 0 16px;
   color: #5e4d40;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 14px;
   font-style: italic;
   line-height: 1.32;
@@ -660,7 +660,7 @@ main {
 .price-grid dd {
   margin: 0;
   color: var(--ink);
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 700;
   line-height: 1;
@@ -901,7 +901,7 @@ main {
 .auth-loading-text {
   margin: 0;
   color: var(--muted);
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 15px;
   font-style: italic;
 }
@@ -935,7 +935,7 @@ main {
 .login-heading {
   margin: 0 0 10px;
   color: var(--ink);
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: 40px;
   font-weight: 500;
   line-height: 1;

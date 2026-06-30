@@ -1,112 +1,88 @@
-import { useDashboardHeader, useDashboardSummary } from '../hooks'
-import type { MetricTone } from '../types'
+import { Box, Typography } from '@mui/material'
+import { visuallyHidden } from '@mui/utils'
+import { useDashboardSummary } from '../hooks'
+import { firebaseAuth } from '../services/firebase'
+import StatCard from './StatCard'
+import StatCardSkeleton from './StatCardSkeleton'
 
-function formatCurrency(value: number): string {
-  return `$${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+const STAT_CARD_COUNT = 4
+
+// Time-of-day word, computed once at module load (avoids calling Date during
+// render — react-hooks/purity).
+const GREETING_HOUR = new Date(Date.now()).getHours()
+const TIME_GREETING =
+  GREETING_HOUR < 12 ? 'Good morning' : GREETING_HOUR < 18 ? 'Good afternoon' : 'Good evening'
+
+// How to address the chef. Use the signed-in Firebase user's first name when
+// there is one, otherwise the friendly default "Chef". Read from
+// firebaseAuth.currentUser (not useAuth) so the greeting renders without an
+// AuthProvider and degrades cleanly when Firebase is disabled.
+function chefName(): string {
+  const display = firebaseAuth?.currentUser?.displayName?.trim()
+  return display ? display.split(/\s+/)[0] : 'Chef'
 }
 
-function tone(value: number, nonZeroTone: MetricTone): MetricTone {
-  return value > 0 ? nonZeroTone : 'default'
-}
-
+// Dashboard hero + KPI bar (T-6A / T-42). Greeting personalises with the Firebase
+// display name when present, else stays generic. The four cards render the server
+// summary as-is (ADR 0004) — never recomputed.
 function DashboardHeader() {
-  const { data, isPending, isError } = useDashboardHeader()
-  const { data: summary, isPending: summaryPending, isError: summaryError } = useDashboardSummary()
-
-  if (isPending) {
-    return (
-      <section className="dashboard-header" aria-labelledby="dashboard-heading">
-        <div className="dashboard-copy">
-          <h1 id="dashboard-heading">Welcome.</h1>
-          <p className="status-message" role="status">
-            Loading your kitchen overview…
-          </p>
-        </div>
-      </section>
-    )
-  }
-
-  if (isError) {
-    return (
-      <section className="dashboard-header" aria-labelledby="dashboard-heading">
-        <div className="dashboard-copy">
-          <h1 id="dashboard-heading">Welcome.</h1>
-          <p className="status-message danger" role="alert">
-            We couldn't load the kitchen overview. Check your connection and try again.
-          </p>
-        </div>
-      </section>
-    )
-  }
-
-  const summaryCards = summary
-    ? [
-        {
-          label: 'Total Items',
-          value: String(summary.totalItems),
-          valueTone: 'default' as MetricTone,
-          helper: 'inventory records',
-        },
-        {
-          label: 'Below Par',
-          value: String(summary.lowStockCount),
-          valueTone: tone(summary.lowStockCount, 'danger'),
-          helper: 'below reorder level',
-        },
-        {
-          label: 'Expiring Soon',
-          value: String(summary.expiringSoonCount),
-          valueTone: tone(summary.expiringSoonCount, 'warning'),
-          helper: 'expire within 7 days',
-        },
-        {
-          label: 'At-Risk Value',
-          value: formatCurrency(summary.atRiskValue),
-          valueTone: tone(summary.atRiskValue, 'danger'),
-          helper: 'tied up in at-risk stock',
-        },
-      ]
-    : null
+  const { data: summary, isPending, isError } = useDashboardSummary()
+  const name = chefName()
 
   return (
-    <section className="dashboard-header" aria-labelledby="dashboard-heading">
-      <div className="dashboard-copy">
-        <h1 id="dashboard-heading">
-          Welcome{data.chefName ? `, ${data.chefName}` : ''}.
-          {data.alertHeadline ? <em> {data.alertHeadline}</em> : null}
-        </h1>
-        {data.summary ? <p>{data.summary}</p> : null}
-        {data.facts.length > 0 ? (
-          <dl className="dashboard-facts" aria-label="Kitchen summary">
-            {data.facts.map((fact) => (
-              <div className="fact-item" key={fact}>
-                <dt>{fact}</dt>
-              </div>
-            ))}
-          </dl>
-        ) : null}
-      </div>
+    <Box component="section" aria-labelledby="dashboard-heading" sx={{ mb: 3.5 }}>
+      <Typography
+        variant="h2"
+        component="h1"
+        id="dashboard-heading"
+        sx={{ fontWeight: 600, letterSpacing: '-0.02em', mb: 3 }}
+      >
+        {TIME_GREETING},{' '}
+        <Box component="span" sx={{ color: 'primary.main' }}>
+          {name}
+        </Box>
+      </Typography>
 
-      <div className="metric-panel" aria-label="Inventory summary">
-        {summaryPending ? (
-          <p className="status-message" role="status">
-            Loading inventory summary…
-          </p>
-        ) : summaryError ? (
-          <p className="status-message danger" role="alert">
+      <Box aria-label="Inventory summary">
+        {isPending ? (
+          <Box role="status" sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <Box component="span" sx={visuallyHidden}>
+              Loading inventory summary…
+            </Box>
+            {Array.from({ length: STAT_CARD_COUNT }).map((_, i) => (
+              <StatCardSkeleton key={i} />
+            ))}
+          </Box>
+        ) : isError ? (
+          <Typography role="alert" color="error" sx={{ py: 1 }}>
             Could not load inventory summary. Check your connection and try again.
-          </p>
-        ) : summaryCards ? (
-          summaryCards.map((card) => (
-            <article className="metric-card" key={card.label}>
-              <h2>{card.label}</h2>
-              <strong className={`metric-value ${card.valueTone}`}>{card.value}</strong>
-              <p>{card.helper}</p>
-            </article>
-          ))
+          </Typography>
+        ) : summary ? (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+            <StatCard label="Total items" value={String(summary.totalItems)} helper="inventory records" />
+            <StatCard
+              label="Below par"
+              value={String(summary.lowStockCount)}
+              tone={summary.lowStockCount > 0 ? 'danger' : 'default'}
+              helper="below reorder level"
+            />
+            <StatCard
+              label="Expiring soon"
+              value={String(summary.expiringSoonCount)}
+              tone={summary.expiringSoonCount > 0 ? 'warning' : 'default'}
+              helper="expire within 7 days"
+            />
+            <StatCard
+              label="At-risk value"
+              value={money.format(summary.atRiskValue)}
+              tone={summary.atRiskValue > 0 ? 'danger' : 'default'}
+              helper="tied up in at-risk stock"
+            />
+          </Box>
         ) : null}
-      </div>
-    </section>
+      </Box>
+    </Box>
   )
 }
 

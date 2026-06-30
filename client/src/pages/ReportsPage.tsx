@@ -18,8 +18,8 @@ function ReportsPage() {
   const { data, isPending, isError, refetch } = useReportKpis()
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" component="h1" sx={{ mb: 3 }}>
+    <Box sx={{ maxWidth: 1440, mx: 'auto', px: { xs: 2, md: 4.5 }, py: 4 }}>
+      <Typography variant="h3" component="h1" sx={{ mb: 3 }}>
         Reports
       </Typography>
 

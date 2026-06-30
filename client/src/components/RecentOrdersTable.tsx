@@ -1,15 +1,8 @@
-import {
-  Box,
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-} from '@mui/material'
+import { Box, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material'
 import type { Supplier } from '@umgccapstone/contracts'
 import type { CrossSupplierDelivery } from '../types'
 import { EmptyState, ErrorState, LoadingState } from './states'
+import FadedChip from './FadedChip'
 
 const dateFmt = new Intl.DateTimeFormat('en-US', {
   month: 'short',
@@ -91,10 +84,10 @@ export default function RecentOrdersTable({
                 {currencyFmt.format(delivery.totalAmount)}
               </TableCell>
               <TableCell>
-                <Chip
-                  size="small"
+                <FadedChip
                   label={delivery.status === 'PENDING' ? 'Pending' : 'Delivered'}
                   color={delivery.status === 'PENDING' ? 'warning' : 'success'}
+                  minWidth={88}
                 />
               </TableCell>
             </TableRow>

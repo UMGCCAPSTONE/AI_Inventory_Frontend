@@ -4,8 +4,15 @@ vi.mock('./apiClient', () => ({
   apiClient: { get: vi.fn(), post: vi.fn(), patch: vi.fn() },
 }))
 
-import { createSupplier, fetchSupplierDeliveries, fetchSuppliers, updateSupplier } from './suppliers'
+import {
+  createSupplier,
+  fetchRecentDeliveries,
+  fetchSupplierDeliveries,
+  fetchSuppliers,
+  updateSupplier,
+} from './suppliers'
 import { apiClient } from './apiClient'
+import { ApiError } from '../types/api'
 
 const getMock = vi.mocked(apiClient.get)
 const postMock = vi.mocked(apiClient.post)
@@ -62,5 +69,43 @@ describe('fetchSupplierDeliveries', () => {
     getMock.mockResolvedValue(undefined as never)
 
     await expect(fetchSupplierDeliveries('s1')).resolves.toEqual([])
+  })
+
+  it('degrades a 404 to an empty array (endpoint not yet live, T-72)', async () => {
+    getMock.mockRejectedValue(new ApiError({ code: 'NOT_FOUND', message: 'Not found' }, 404))
+
+    await expect(fetchSupplierDeliveries('s1')).resolves.toEqual([])
+  })
+
+  it('re-throws non-404 errors so the UI can show an error state', async () => {
+    const serverError = new ApiError({ code: 'SERVER_ERROR', message: 'Boom' }, 500)
+    getMock.mockRejectedValue(serverError)
+
+    await expect(fetchSupplierDeliveries('s1')).rejects.toBe(serverError)
+  })
+})
+
+describe('fetchRecentDeliveries', () => {
+  it('GETs cross-supplier deliveries from /deliveries/recent', async () => {
+    const deliveries = [
+      { id: 'd1', supplierId: 's1', supplierName: 'Acme', deliveryDate: '2026-06-01', items: [], totalAmount: 0 },
+    ]
+    getMock.mockResolvedValue(deliveries as never)
+
+    await expect(fetchRecentDeliveries()).resolves.toEqual(deliveries)
+    expect(getMock).toHaveBeenCalledWith('/deliveries/recent')
+  })
+
+  it('degrades a 404 to an empty array (endpoint not yet live, T-72)', async () => {
+    getMock.mockRejectedValue(new ApiError({ code: 'NOT_FOUND', message: 'Not found' }, 404))
+
+    await expect(fetchRecentDeliveries()).resolves.toEqual([])
+  })
+
+  it('re-throws non-404 errors so the UI can show an error state', async () => {
+    const serverError = new ApiError({ code: 'SERVER_ERROR', message: 'Boom' }, 500)
+    getMock.mockRejectedValue(serverError)
+
+    await expect(fetchRecentDeliveries()).rejects.toBe(serverError)
   })
 })
