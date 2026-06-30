@@ -1,5 +1,11 @@
 export { useDashboardHeader, useDashboardSummary, useDashboardAlerts, useTodayDashboard, useRecommendationPreviews } from './useDashboard'
-export { useRecommendationAvailability, useMenuItems, useCreateMenuItem } from './useMenu'
+export {
+  useRecommendationAvailability,
+  useMenuItems,
+  useCreateMenuItem,
+  useUpdateMenuItem,
+  useArchiveMenuItem,
+} from './useMenu'
 export {
   useRecommendations,
   useGenerateRecommendations,

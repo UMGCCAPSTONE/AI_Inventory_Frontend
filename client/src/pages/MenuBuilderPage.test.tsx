@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
@@ -263,14 +263,14 @@ describe('MenuBuilderPage — ADR 0014: kind-aware actions', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument()
   })
 
-  it('shows an accepted recommendation as marked and non-actionable', async () => {
+  it('omits an accepted recommendation from the Active list (it moves to the menu) — T-72', async () => {
     respondWith({ recommendations: [makeRec({ status: 'ACCEPTED' })] })
     render(<MenuBuilderPage />, { wrapper })
 
-    await screen.findByRole('article', { name: 'Tomato Basil Soup' })
-    expect(screen.getByText('Accepted')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Accept' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Dismiss' })).toBeNull()
+    // Active = PROPOSED only: an accepted dish is now a menu item, so it drops
+    // out of the AI-generated queue (reachable via Current menu + history).
+    expect(await screen.findByText('No recommendations yet')).toBeInTheDocument()
+    expect(screen.queryByRole('article', { name: 'Tomato Basil Soup' })).toBeNull()
   })
 })
 
@@ -304,6 +304,39 @@ describe('MenuBuilderPage — current menu section', () => {
 
     expect(await screen.findByText('House Salad')).toBeInTheDocument()
     expect(screen.queryByText('Old Special')).toBeNull()
+  })
+
+  it('deletes a dish via the kebab + confirm dialog — PATCH status ARCHIVED (T-72)', async () => {
+    respondWith({ menu: [makeMenuItem({ id: 'm1', name: 'House Salad' })] })
+    patchMock.mockResolvedValue(makeMenuItem({ id: 'm1', status: 'ARCHIVED' }))
+    render(<MenuBuilderPage />, { wrapper })
+
+    await screen.findByText('House Salad')
+    // Open the kebab menu, then choose Delete.
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for House Salad' }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }))
+
+    // Confirm dialog opens; confirming fires the archive PATCH.
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
+
+    await waitFor(() =>
+      expect(patchMock).toHaveBeenCalledWith('/menu-items/m1', { status: 'ARCHIVED' }),
+    )
+  })
+
+  it('toggles a dish to special via the kebab — PATCH isSpecial true (T-72)', async () => {
+    respondWith({ menu: [makeMenuItem({ id: 'm1', name: 'House Salad', isSpecial: false })] })
+    patchMock.mockResolvedValue(makeMenuItem({ id: 'm1', isSpecial: true }))
+    render(<MenuBuilderPage />, { wrapper })
+
+    await screen.findByText('House Salad')
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for House Salad' }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Make special' }))
+
+    await waitFor(() =>
+      expect(patchMock).toHaveBeenCalledWith('/menu-items/m1', { isSpecial: true }),
+    )
   })
 })
 

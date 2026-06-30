@@ -1,11 +1,25 @@
 import { useState } from 'react'
-import { Box, Button, Chip, CircularProgress, Stack, Typography } from '@mui/material'
-import type { RecommendationStatus } from '@umgccapstone/contracts'
+import {
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Stack,
+  Typography,
+} from '@mui/material'
+import type { MenuItem, RecommendationStatus } from '@umgccapstone/contracts'
 import {
   useAllInventory,
+  useArchiveMenuItem,
   useGenerateRecommendations,
   useMenuItems,
   useRecommendations,
+  useUpdateMenuItem,
   useUpdateRecommendationStatus,
 } from '../hooks'
 import RecommendationCard from '../components/RecommendationCard'
@@ -16,8 +30,11 @@ import { EmptyState, ErrorState, LoadingState } from '../components/states'
 // Which recommendation statuses each filter view shows.
 type RecFilter = 'active' | 'saved' | 'dismissed'
 const REC_FILTERS: { key: RecFilter; label: string; statuses: RecommendationStatus[] }[] = [
-  // Active = the working list: pending + just-accepted (accepted stays, marked).
-  { key: 'active', label: 'Active', statuses: ['PROPOSED', 'ACCEPTED'] },
+  // Active = the AI-generated queue: PROPOSED only. Accepting a dish creates a
+  // menu item, so it drops out of this list (it stays on the Current menu and in
+  // recommendation history). Pairs with backend global dedup (#66) so Generate
+  // won't re-suggest an already-accepted dish.
+  { key: 'active', label: 'Active', statuses: ['PROPOSED'] },
   { key: 'saved', label: 'Saved', statuses: ['SAVED'] },
   { key: 'dismissed', label: 'Dismissed', statuses: ['DISMISSED'] },
 ]
@@ -35,19 +52,28 @@ const cardGrid = {
 function MenuBuilderPage() {
   const [recFilter, setRecFilter] = useState<RecFilter>('active')
   const [addDishOpen, setAddDishOpen] = useState(false)
+  const [removeTarget, setRemoveTarget] = useState<MenuItem | null>(null)
 
   const generate = useGenerateRecommendations()
   const recommendations = useRecommendations()
   const statusMutation = useUpdateRecommendationStatus()
   const menuItems = useMenuItems()
   const inventory = useAllInventory()
+  const archiveMenuItem = useArchiveMenuItem()
+  const updateMenuItem = useUpdateMenuItem()
+
+  function confirmRemove() {
+    if (!removeTarget) return
+    archiveMenuItem.mutate(removeTarget.id, {
+      onSuccess: () => setRemoveTarget(null),
+    })
+  }
 
   const allRecs = recommendations.data ?? []
   const activeMenu = (menuItems.data ?? []).filter((item) => item.status === 'ACTIVE')
-  // Subtitle counts.
-  const specialsCount = allRecs.filter(
-    (r) => r.status === 'PROPOSED' || r.status === 'ACCEPTED',
-  ).length
+  // Subtitle count: the AI-generated queue (PROPOSED). Accepted dishes are now
+  // menu items and are counted as such, not double-counted as specials.
+  const specialsCount = allRecs.filter((r) => r.status === 'PROPOSED').length
 
   const filterStatuses = REC_FILTERS.find((f) => f.key === recFilter)!.statuses
   const visibleRecs = allRecs.filter((r) => filterStatuses.includes(r.status))
@@ -168,12 +194,23 @@ function MenuBuilderPage() {
         ) : activeMenu.length === 0 ? (
           <EmptyState
             title="No menu items yet"
-            description="Accepted recommendations and saved dishes appear here."
+            description="Accepted recommendations appear here. Add a dish or accept an AI special to get started."
           />
         ) : (
           <Box sx={cardGrid}>
             {activeMenu.map((item) => (
-              <MenuItemCard key={item.id} item={item} />
+              <MenuItemCard
+                key={item.id}
+                item={item}
+                onRemove={() => setRemoveTarget(item)}
+                onToggleSpecial={() =>
+                  updateMenuItem.mutate({ id: item.id, input: { isSpecial: !item.isSpecial } })
+                }
+                busy={
+                  (archiveMenuItem.isPending && archiveMenuItem.variables === item.id) ||
+                  (updateMenuItem.isPending && updateMenuItem.variables?.id === item.id)
+                }
+              />
             ))}
           </Box>
         )}
@@ -184,6 +221,36 @@ function MenuBuilderPage() {
         onClose={() => setAddDishOpen(false)}
         inventoryItems={inventory.data ?? []}
       />
+
+      {/* Delete (soft-archive) confirmation. Archive is reversible, so a simple
+          confirm is enough — no type-to-confirm (unlike inventory delete). */}
+      <Dialog
+        open={removeTarget !== null}
+        onClose={() => (archiveMenuItem.isPending ? undefined : setRemoveTarget(null))}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Delete dish</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Remove <strong>{removeTarget?.name}</strong> from the Current menu? It will be archived
+            and can be brought back later.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRemoveTarget(null)} disabled={archiveMenuItem.isPending}>
+            Cancel
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={confirmRemove}
+            disabled={archiveMenuItem.isPending}
+          >
+            {archiveMenuItem.isPending ? 'Deleting…' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

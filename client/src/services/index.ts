@@ -7,7 +7,13 @@ export {
   fetchDashboardAlerts,
   fetchRecommendationPreviews,
 } from './dashboard'
-export { fetchRecommendationAvailability, fetchMenuItems, createMenuItem } from './menu'
+export {
+  fetchRecommendationAvailability,
+  fetchMenuItems,
+  createMenuItem,
+  updateMenuItem,
+  archiveMenuItem,
+} from './menu'
 export {
   fetchRecommendations,
   generateRecommendations,
