@@ -144,7 +144,7 @@ function SuppliersPage() {
       >
         <Box>
           <Typography variant="h3" component="h1" sx={{ fontWeight: 700, lineHeight: 1.1 }}>
-            Supplier network.
+            Supplier network
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
             {statsLabel}
