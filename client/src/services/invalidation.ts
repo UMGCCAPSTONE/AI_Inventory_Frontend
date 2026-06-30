@@ -20,7 +20,9 @@ export type WriteKey =
 // changes affect whether a dish can be made. Content snapshots
 // (`dashboard.recommendations`) are NOT invalidated — they are editorial, not
 // inventory-derived. T-10B adds queryKeys.reports.category so it re-fetches
-// after any inventory write.
+// after any inventory write. T-10C adds queryKeys.dashboard.alerts so the
+// Reports waste-risk summary (and the Dashboard alerts feed, which reads the
+// same key) refresh after any inventory write.
 //
 // Supplier writes (T-9B) only need `suppliers.list`: the inventory grid resolves
 // `supplierId -> name` through the same `useSuppliers` query, so refreshing that
@@ -31,6 +33,7 @@ export const writeInvalidationMap: Record<WriteKey, readonly (readonly unknown[]
     queryKeys.dashboard.summary,
     queryKeys.dashboard.header,
     queryKeys.dashboard.today,
+    queryKeys.dashboard.alerts,
     queryKeys.menu.availability,
     queryKeys.reports.category,
   ],
