@@ -69,10 +69,10 @@ function InventoryPage() {
     : 'Loading inventory…'
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ maxWidth: 1440, mx: 'auto', px: { xs: 2, md: 4.5 }, py: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Box>
-          <Typography variant="h4" component="h1">
+          <Typography variant="h3" component="h1">
             Inventory items
           </Typography>
           <Typography variant="body2" color="text.secondary">
