@@ -1,6 +1,6 @@
 # Frontend Test Coverage Matrix
 
-**Last updated:** 2026-06-29  
+**Last updated:** 2026-06-30  
 **Ticket:** T-20B — Frontend Test Coverage (placeholder specs for upcoming MVP pages); Menu Builder specs activated by T-8  
 **Harness:** Vitest + React Testing Library + jsdom (T-20A)
 
@@ -34,6 +34,7 @@
 | **Suppliers** | US-SUPP-1: Directory view | `src/pages/SuppliersPage.test.tsx` | ⏭ Skipped | T-9A / T-9B |
 | | US-SUPP-2: Add supplier | `src/pages/SuppliersPage.test.tsx` | ⏭ Skipped | T-9B |
 | | US-SUPP-3: Edit supplier | `src/pages/SuppliersPage.test.tsx` | ⏭ Skipped | T-9B |
+| | US-SUPP-4: Delivery history | `src/pages/SuppliersPage.test.tsx`, `src/components/SupplierDeliveryHistory.test.tsx` | ✅ Active | T-9S |
 | **Menu Builder** | US-MENU-1: Layout & generate flow | `src/pages/MenuBuilderPage.test.tsx` | ✅ Active | T-8A |
 | | US-MENU-2: Recommendation detail (incl. pricing) | `src/pages/MenuBuilderPage.test.tsx` | ✅ Active | T-8B |
 | | US-MENU-3: Accept recommendation | `src/pages/MenuBuilderPage.test.tsx` | ✅ Active | T-8B |

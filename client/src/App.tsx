@@ -1,7 +1,7 @@
 import './App.css'
 import { NavLink, Route, Routes } from 'react-router-dom'
 import { useAuth } from './context'
-import { DashboardPage, InventoryPage, LoginPage, MenuBuilderPage, ReportsPage } from './pages'
+import { DashboardPage, InventoryPage, LoginPage, MenuBuilderPage, ReportsPage, SuppliersPage } from './pages'
 
 const navItems = [
   { label: 'Today', to: '/' },
@@ -97,6 +97,7 @@ function App() {
           <Route path="/" element={<DashboardPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
           <Route path="/menu" element={<MenuBuilderPage />} />
+          <Route path="/suppliers" element={<SuppliersPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="*" element={<ComingSoon />} />
         </Routes>

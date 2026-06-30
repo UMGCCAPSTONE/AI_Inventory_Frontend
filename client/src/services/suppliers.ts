@@ -3,6 +3,7 @@ import type {
   Supplier,
   UpdateSupplierInput,
 } from '@umgccapstone/contracts'
+import type { Delivery } from '../types'
 import { apiClient } from './apiClient'
 
 // Suppliers service (T-14 API). The inventory grid uses the list to resolve an
@@ -25,4 +26,11 @@ export async function updateSupplier(
   input: UpdateSupplierInput,
 ): Promise<Supplier> {
   return apiClient.patch<Supplier>(`/suppliers/${id}`, input)
+}
+
+// Fetch delivery history for a supplier (T-9S). Falls back to an empty array
+// when the backend returns nothing (endpoint not yet live returns 404 → error
+// state; empty array → empty state).
+export async function fetchSupplierDeliveries(supplierId: string): Promise<Delivery[]> {
+  return (await apiClient.get<Delivery[]>(`/suppliers/${supplierId}/deliveries`)) ?? []
 }

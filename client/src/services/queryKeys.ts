@@ -31,6 +31,7 @@ export const queryKeys = {
   },
   suppliers: {
     list: ['suppliers', 'list'] as const,
+    deliveries: (id: string) => ['suppliers', 'deliveries', id] as const,
   },
   reports: {
     category: ['reports', 'category'] as const,

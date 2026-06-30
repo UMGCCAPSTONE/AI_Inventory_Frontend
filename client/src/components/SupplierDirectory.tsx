@@ -9,6 +9,9 @@ type SupplierDirectoryProps = {
   // When provided, each row gets an Edit action that hands back the full
   // supplier (T-9B). Omitted → read-only directory, exactly as T-9A shipped.
   onEditSupplier?: (supplier: Supplier) => void
+  // When provided, each row gets a History action that opens the delivery
+  // history drawer for that supplier (T-9S).
+  onViewHistory?: (supplier: Supplier) => void
 }
 
 const baseColumns: GridColDef[] = [
@@ -20,15 +23,15 @@ const baseColumns: GridColDef[] = [
 
 const containerSx = { maxWidth: 1390, mx: 'auto', px: { xs: 2, md: 4.5 }, py: 4 }
 
-function SupplierDirectory({ onEditSupplier }: SupplierDirectoryProps = {}) {
+function SupplierDirectory({ onEditSupplier, onViewHistory }: SupplierDirectoryProps = {}) {
   const { data, isPending, isError, refetch } = useSuppliers()
   const [search, setSearch] = useState('')
 
   const columns = useMemo<GridColDef[]>(() => {
-    if (!onEditSupplier) return baseColumns
-    return [
-      ...baseColumns,
-      {
+    const extra: GridColDef[] = []
+
+    if (onEditSupplier) {
+      extra.push({
         field: 'actions',
         headerName: '',
         sortable: false,
@@ -47,9 +50,34 @@ function SupplierDirectory({ onEditSupplier }: SupplierDirectoryProps = {}) {
             </Button>
           )
         },
-      },
-    ]
-  }, [onEditSupplier])
+      })
+    }
+
+    if (onViewHistory) {
+      extra.push({
+        field: 'history',
+        headerName: '',
+        sortable: false,
+        filterable: false,
+        disableColumnMenu: true,
+        width: 90,
+        renderCell: (params) => {
+          const supplier = params.row.supplier as Supplier
+          return (
+            <Button
+              size="small"
+              onClick={() => onViewHistory(supplier)}
+              aria-label={`View delivery history for ${supplier.name}`}
+            >
+              History
+            </Button>
+          )
+        },
+      })
+    }
+
+    return extra.length > 0 ? [...baseColumns, ...extra] : baseColumns
+  }, [onEditSupplier, onViewHistory])
 
   if (isPending) {
     return (

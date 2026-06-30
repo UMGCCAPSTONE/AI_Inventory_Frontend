@@ -5,6 +5,7 @@ import type {
 } from '@umgccapstone/contracts'
 import {
   createSupplier,
+  fetchSupplierDeliveries,
   fetchSuppliers,
   invalidateAfterWrite,
   queryKeys,
@@ -38,5 +39,17 @@ export function useUpdateSupplier() {
     mutationFn: ({ id, input }: { id: string; input: UpdateSupplierInput }) =>
       updateSupplier(id, input),
     onSuccess: () => invalidateAfterWrite(queryClient, 'supplier.update'),
+  })
+}
+
+// Delivery history query (T-9S). Disabled until a supplierId is provided so
+// no fetch fires before the user opens the drawer for a specific supplier.
+export function useSupplierDeliveries(supplierId: string | undefined) {
+  return useQuery({
+    queryKey: supplierId
+      ? queryKeys.suppliers.deliveries(supplierId)
+      : (['suppliers', 'deliveries', 'none'] as const),
+    queryFn: () => fetchSupplierDeliveries(supplierId!),
+    enabled: !!supplierId,
   })
 }

@@ -6,6 +6,7 @@ import type {
   UpdateSupplierInput,
 } from '@umgccapstone/contracts'
 import { ApiError } from '../types/api'
+import SupplierDeliveryHistory from '../components/SupplierDeliveryHistory'
 import SupplierDirectory from '../components/SupplierDirectory'
 import SupplierForm from '../components/SupplierForm'
 import { useCreateSupplier, useUpdateSupplier } from '../hooks'
@@ -23,6 +24,7 @@ function messageFor(error: unknown): string {
 function SuppliersPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Supplier | null>(null)
+  const [historySupplier, setHistorySupplier] = useState<Supplier | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [toast, setToast] = useState<Toast | null>(null)
 
@@ -77,7 +79,15 @@ function SuppliersPage() {
         </Button>
       </Box>
 
-      <SupplierDirectory onEditSupplier={openEdit} />
+      <SupplierDirectory
+        onEditSupplier={openEdit}
+        onViewHistory={(s) => setHistorySupplier(s)}
+      />
+
+      <SupplierDeliveryHistory
+        supplier={historySupplier}
+        onClose={() => setHistorySupplier(null)}
+      />
 
       <SupplierForm
         open={formOpen}
