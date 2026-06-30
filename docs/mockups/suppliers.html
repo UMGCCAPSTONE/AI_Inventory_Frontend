@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mise — Suppliers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1EDE3; --surface:#FBF9F2; --surface-2:#F6F2E8;
+    --ink:#1F1B16; --ink-soft:#5C544A; --muted:#938A7C;
+    --hairline:rgba(31,27,22,.10); --hairline-soft:rgba(31,27,22,.06);
+    --terra:#A8392A; --terra-soft:#FBEAE4;
+    --amber:#B5832A; --amber-soft:#F6ECD6;
+    --sage:#5E6E45; --sage-soft:#EBEFE0;
+    --radius:14px; --shadow:0 1px 2px rgba(31,27,22,.04), 0 8px 24px rgba(31,27,22,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{background:var(--bg);color:var(--ink);font-family:"Inter",system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1360px;margin:0 auto;padding:0 40px}
+
+  header.nav{display:flex;align-items:center;gap:36px;padding:26px 0 22px}
+  .brand{display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit}
+  .mark{width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-family:"Fraunces",serif;font-weight:600;font-style:italic;font-size:22px;flex:none}
+  .brand-name{font-family:"Fraunces",serif;font-weight:600;font-size:30px;letter-spacing:-.01em}
+  .brand-tag{font-family:"Fraunces",serif;font-style:italic;color:var(--muted);font-size:16px;margin-left:2px}
+  nav.tabs{display:flex;align-items:center;gap:6px;margin-left:8px}
+  .tab{font-size:15px;color:var(--ink-soft);text-decoration:none;padding:8px 16px;border-radius:9px;transition:background .15s ease,color .15s ease}
+  .tab:hover{background:var(--surface-2);color:var(--ink)}
+  .tab.active{background:var(--ink);color:var(--surface);font-weight:500}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .service{border:1px solid var(--hairline);border-radius:11px;padding:7px 18px;text-align:center;background:var(--surface)}
+  .service .lbl{font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .service .val{font-family:"Fraunces",serif;font-style:italic;font-weight:500;font-size:16px;margin-top:1px}
+  .signin{display:flex;align-items:center;gap:10px;border:1px solid var(--hairline);border-radius:999px;padding:8px 20px 8px 10px;background:var(--surface);cursor:pointer;font:inherit;font-size:15px;color:var(--ink);transition:box-shadow .15s ease,border-color .15s ease}
+  .signin:hover{box-shadow:var(--shadow);border-color:rgba(31,27,22,.18)}
+  .signin .dot{width:24px;height:24px;border-radius:50%;background:var(--terra);flex:none}
+
+  .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:26px 0 26px;flex-wrap:wrap}
+  .page-title{font-family:"Fraunces",serif;font-weight:600;font-size:clamp(44px,6vw,72px);letter-spacing:-.025em;line-height:.98}
+  .page-sub{font-size:15px;color:var(--muted);margin-top:10px}
+  .btn{font:inherit;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:13px 22px;border-radius:10px;cursor:pointer;transition:transform .12s ease,box-shadow .15s ease,background .15s ease;background:var(--terra);border:1px solid var(--terra);color:#fff}
+  .btn:hover{box-shadow:var(--shadow);background:#963122}
+  .btn:active{transform:translateY(1px)}
+
+  .layout{display:grid;grid-template-columns:1.7fr 1fr;gap:20px;align-items:start}
+  .col{display:flex;flex-direction:column;gap:20px}
+  .panel{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px 26px}
+  .cap-label{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:18px}
+
+  .search input{width:100%;padding:13px 16px;border:1px solid var(--hairline);border-radius:11px;background:var(--surface);font:inherit;font-size:14.5px;color:var(--ink)}
+  .search input::placeholder{color:var(--muted)}
+  .search input:focus{outline:2px solid var(--terra);outline-offset:1px;border-color:transparent}
+
+  .subtabs{display:flex;gap:26px;border-bottom:1px solid var(--hairline);margin:20px 0 4px}
+  .subtab{font:inherit;font-size:15px;color:var(--ink-soft);background:none;border:none;padding:11px 2px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s ease}
+  .subtab:hover{color:var(--ink)}
+  .subtab.active{color:var(--terra);border-bottom-color:var(--terra);font-weight:500}
+
+  .sup-row{display:flex;align-items:center;gap:16px;padding:18px 2px;border-top:1px solid var(--hairline-soft)}
+  .sup-row:first-child{border-top:none}
+  .avatar{width:46px;height:46px;border-radius:50%;background:var(--surface-2);border:1px solid var(--hairline);display:grid;place-items:center;font-family:"Fraunces",serif;font-weight:600;font-size:15px;color:var(--ink-soft);letter-spacing:.04em;flex:none}
+  .sup-info{flex:1;min-width:0}
+  .sup-name{font-weight:600;font-size:17px;color:var(--ink);display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .sup-meta{font-size:13.5px;color:var(--muted);margin-top:2px}
+  .sup-actions{display:flex;align-items:center;gap:14px;flex:none}
+  .pending-tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--amber-soft);color:#7C5A12}
+  .edit-link{background:none;border:none;font:inherit;font-size:12.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--terra);cursor:pointer;padding:0}
+  .edit-link:hover{text-decoration:underline;text-underline-offset:3px}
+  .view-btn{font:inherit;font-size:12.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--terra);background:var(--surface);border:1px solid rgba(168,57,42,.4);padding:8px 18px;border-radius:9px;cursor:pointer;transition:background .15s ease}
+  .view-btn:hover{background:var(--terra-soft)}
+
+  /* States */
+  .state{padding:30px 4px;text-align:center;color:var(--ink-soft)}
+  .state .muted{color:var(--muted);font-size:14px;line-height:1.5}
+  .state .retry{margin-top:14px;font:inherit;font-size:12.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--terra);background:var(--surface);border:1px solid rgba(168,57,42,.4);padding:9px 18px;border-radius:9px;cursor:pointer}
+  .state .retry:hover{background:var(--terra-soft)}
+  .state .err{color:var(--terra);font-weight:500}
+  .skel{background:linear-gradient(90deg,var(--surface-2) 25%,#ece5d6 37%,var(--surface-2) 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite;border-radius:7px}
+  @keyframes shimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+  .skel-line{height:13px;margin:11px 0}
+  .skel-row{display:flex;align-items:center;gap:14px;padding:16px 0;border-top:1px solid var(--hairline-soft)}
+  .skel-row:first-child{border-top:none}
+  .skel-circle{width:96px;height:96px;border-radius:50%;flex:none}
+
+  /* Spend donut */
+  .donut-row{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+  .donut{width:140px;height:140px;flex:none}
+  .donut .d-lbl{font-size:8px;fill:var(--muted);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+  .donut .d-val{font-family:"Fraunces",serif;font-size:16px;font-weight:600;fill:var(--ink)}
+  .legend{flex:1;min-width:180px;display:flex;flex-direction:column}
+  .lg-row{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;padding:7px 0;font-size:14px;border-top:1px solid var(--hairline-soft)}
+  .lg-row:first-child{border-top:none}
+  .lg-name{display:flex;align-items:center;gap:9px;color:var(--ink)}
+  .lg-dot{width:11px;height:11px;border-radius:3px;flex:none}
+  .lg-val{font-weight:600;font-variant-numeric:tabular-nums}
+  .lg-total{display:flex;justify-content:space-between;margin-top:14px;padding-top:13px;border-top:1px solid var(--hairline);font-size:14px}
+  .lg-total b{font-family:"Fraunces",serif;font-size:17px}
+
+  /* Recent orders table */
+  .otable{width:100%;border-collapse:collapse}
+  .otable th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:0 10px 12px;white-space:nowrap}
+  .otable th:first-child{padding-left:2px}
+  .otable td{padding:13px 10px;border-top:1px solid var(--hairline-soft);font-size:13.5px;color:var(--ink-soft);vertical-align:middle}
+  .otable td:first-child{padding-left:2px}
+  .otable .o-sup{font-weight:500;color:var(--ink);white-space:nowrap}
+  .otable .o-items{color:var(--muted);max-width:240px}
+  .otable .o-total{font-weight:600;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .otable .o-date{white-space:nowrap}
+  .badge{font-size:11px;font-weight:600;padding:4px 11px;border-radius:999px;white-space:nowrap;display:inline-block}
+  .badge.delivered{background:var(--sage-soft);color:var(--sage)}
+  .badge.pending{background:var(--amber-soft);color:#7C5A12}
+
+  /* Upcoming */
+  .deliv{display:flex;align-items:center;gap:14px;padding:14px 0;border-top:1px solid var(--hairline-soft)}
+  .deliv:first-child{border-top:none}
+  .deliv .avatar{width:40px;height:40px;font-size:13px}
+  .deliv-info{flex:1;min-width:0}
+  .deliv-name{font-weight:500;color:var(--ink);font-size:14.5px}
+  .deliv-when{font-size:12.5px;color:var(--muted);margin-top:1px}
+  .deliv-count{font-size:13px;font-weight:600;color:var(--terra);white-space:nowrap;background:var(--terra-soft);padding:4px 11px;border-radius:999px;flex:none}
+
+  /* Modal */
+  .backdrop{position:fixed;inset:0;background:rgba(31,27,22,.42);display:none;align-items:flex-start;justify-content:center;padding:64px 20px;z-index:70;overflow-y:auto}
+  .backdrop.open{display:flex}
+  .modal{background:var(--bg);border:1px solid var(--hairline);border-radius:18px;box-shadow:0 24px 60px rgba(31,27,22,.3);width:100%;max-width:560px;padding:28px 30px 26px}
+  .modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:6px}
+  .modal-title{font-family:"Fraunces",serif;font-weight:600;font-size:26px;letter-spacing:-.01em;line-height:1.1}
+  .modal-sub{font-size:13.5px;color:var(--muted);margin-top:3px}
+  .modal-close{background:none;border:1px solid var(--hairline);width:34px;height:34px;border-radius:9px;cursor:pointer;font-size:17px;color:var(--ink-soft);flex:none}
+  .modal-close:hover{background:var(--surface-2)}
+  .htable{width:100%;border-collapse:collapse;margin-top:18px}
+  .htable th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:0 8px 12px}
+  .htable td{padding:13px 8px;border-top:1px solid var(--hairline-soft);font-size:14px;color:var(--ink-soft)}
+  .htable .h-total{text-align:right;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .htable tfoot td{border-top:1px solid var(--hairline);font-weight:600;color:var(--ink);padding-top:14px}
+
+  /* Demo state switcher */
+  .demo-bar{position:fixed;left:18px;bottom:18px;display:flex;gap:4px;align-items:center;background:var(--surface);border:1px solid var(--hairline);border-radius:999px;padding:6px 8px 6px 13px;box-shadow:var(--shadow);z-index:80}
+  .demo-bar .lbl{color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:10px;margin-right:4px}
+  .demo-bar button{font:inherit;font-size:12px;border:none;background:none;color:var(--ink-soft);padding:5px 11px;border-radius:999px;cursor:pointer}
+  .demo-bar button.active{background:var(--ink);color:#fff}
+  .demo-bar button:not(.active):hover{background:var(--surface-2)}
+
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 22px;border-radius:11px;font-size:14px;font-weight:500;box-shadow:0 10px 30px rgba(31,27,22,.25);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:90}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .spacer{height:64px}
+  a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--terra);outline-offset:3px;border-radius:6px}
+
+  @media (max-width:980px){.wrap{padding:0 22px}.layout{grid-template-columns:1fr}header.nav{flex-wrap:wrap;gap:18px}nav.tabs{order:3;width:100%;overflow-x:auto}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="Mise home">
+      <div class="mark">M</div><span class="brand-name">Mise</span><span class="brand-tag">smart kitchen inventory</span>
+    </a>
+    <nav class="tabs">
+      <a class="tab" href="index.html">Today</a>
+      <a class="tab" href="inventory.html">Inventory</a>
+      <a class="tab" href="menu.html">Menu</a>
+      <a class="tab active" href="suppliers.html">Suppliers</a>
+      <a class="tab" href="reports.html">Reports</a>
+    </nav>
+    <div class="nav-right">
+      <div class="service"><div class="lbl">Service</div><div class="val">Not set</div></div>
+      <button class="signin"><span class="dot"></span>Sign in</button>
+    </div>
+  </header>
+
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Supplier network.</h1>
+      <div class="page-sub" id="pageSub">Loading…</div>
+    </div>
+    <button class="btn" id="addSupplier">+ Add supplier</button>
+  </div>
+
+  <div class="layout">
+    <div class="col">
+      <section class="panel">
+        <div class="search"><input type="text" id="search" placeholder="Search suppliers…" aria-label="Search suppliers"></div>
+        <div class="subtabs" id="subtabs"></div>
+        <div id="supList"></div>
+      </section>
+      <section class="panel">
+        <div class="cap-label">Recent orders</div>
+        <div id="orders"></div>
+      </section>
+    </div>
+    <div class="col">
+      <section class="panel">
+        <div class="cap-label">Spend by supplier</div>
+        <div id="spend"></div>
+      </section>
+      <section class="panel">
+        <div class="cap-label">Upcoming deliveries</div>
+        <div id="upcoming"></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+</div>
+
+<div class="backdrop" id="backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="modalTitle">Supplier</div>
+        <div class="modal-sub">Delivery history</div>
+      </div>
+      <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+    </div>
+    <div id="historyBody"></div>
+  </div>
+</div>
+
+<div class="demo-bar" role="group" aria-label="Preview data states">
+  <span class="lbl">States</span>
+  <button data-demo="normal" class="active">Normal</button>
+  <button data-demo="slow">Slow</button>
+  <button data-demo="empty">Empty</button>
+  <button data-demo="error">Error</button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* =====================================================================
+   DATA LAYER — mock API that mirrors the real REST contract.
+   Swap each api.* method's body for a fetch() to wire a real backend:
+     getSuppliers()           -> GET /api/suppliers
+     getSpendBySupplier()     -> GET /api/deliveries/spend-summary
+     getRecentDeliveries(n)   -> GET /api/deliveries?scope=recent&limit=n
+     getUpcomingDeliveries()  -> GET /api/deliveries?scope=upcoming
+     getSupplierHistory(id)   -> GET /api/suppliers/:id/deliveries
+   Money is integer cents; dates are real ISO timestamps.
+   ===================================================================== */
+
+  var DEMO = "normal"; // normal | slow | empty | error
+  function latency(){ return DEMO==="slow" ? 1400 : 420; }
+
+  // --- seed (built relative to "now" so countdowns/sorting stay correct) ---
+  var SUPPLIERS = [
+    {id:"acme",   name:"Acme Produce Co.",       contact:"Maria Lopez", schedule:"Weekly (Tue)",          color:"#5E6E45"},
+    {id:"dry",    name:"Dry Goods Distributors", contact:null,          schedule:"Monthly",               color:"#B5832A"},
+    {id:"harbor", name:"Harbor Seafood",         contact:null,          schedule:"Twice weekly (Mon/Thu)",color:"#9A5B33"}
+  ];
+  function supName(id){ var s=SUPPLIERS.find(function(x){return x.id===id;}); return s?s.name:id; }
+
+  var DAY = 86400000;
+  function at(offsetDays){ return new Date(Date.now()+offsetDays*DAY).toISOString(); }
+  var _id=0;
+  function delivery(supplierId, status, offsetDays, items){
+    var when = at(offsetDays);
+    var total = items.reduce(function(s,i){return s+i.qty*i.unitCents;},0);
+    return {
+      id:"d"+(++_id), supplierId:supplierId, status:status,
+      scheduledFor:when,
+      deliveredAt: status==="delivered" ? when : null,
+      lineItems:items, totalCents:total
+    };
+  }
+  function li(name,qty,unitCents){ return {name:name,qty:qty,unitCents:unitCents}; }
+
+  var DELIVERIES = [
+    // delivered (past)
+    delivery("harbor","delivered",-1,  [li("Salmon fillet",2,900),li("Frozen shrimp",3,700)]),
+    delivery("acme",  "delivered",-2,  [li("Roma tomato",4,250),li("Romaine lettuce",5,180),li("Fresh basil",2,300)]),
+    delivery("dry",   "delivered",-6,  [li("All-purpose flour",2,400),li("Olive oil",3,900),li("Table salt",1,200)]),
+    delivery("acme",  "delivered",-9,  [li("Parmesan",2,1200),li("Whole milk",4,150),li("Fresh mozzarella",2,750)]),
+    delivery("harbor","delivered",-13, [li("Salmon fillet",3,900)]),
+    delivery("acme",  "delivered",-17, [li("Roma tomato",3,250),li("Orange juice",2,400)]),
+    delivery("dry",   "delivered",-31, [li("Frozen peas",4,300),li("House red wine",2,1500)]),
+    // pending, overdue (scheduled in the past, not yet delivered) -> shows in Recent, not Upcoming
+    delivery("harbor","pending",-0.25,[li("Salmon fillet",1,900)]),
+    // pending, upcoming (future)
+    delivery("harbor","pending",2,   [li("Salmon fillet",2,900),li("Frozen shrimp",2,700)]),
+    delivery("acme",  "pending",5,   [li("Roma tomato",4,250),li("Romaine lettuce",3,180)]),
+    delivery("dry",   "pending",20,  [li("All-purpose flour",3,400)])
+  ];
+
+  // --- mock transport: resolves after latency, or fails/empties per DEMO ---
+  function respond(buildData){
+    return new Promise(function(resolve,reject){
+      setTimeout(function(){
+        if(DEMO==="error"){ reject(new Error("Network error")); return; }
+        if(DEMO==="empty"){ resolve(buildData(true)); return; }
+        resolve(buildData(false));
+      }, latency());
+    });
+  }
+
+  var api = {
+    getSuppliers:function(){ return respond(function(empty){ return empty?[]:SUPPLIERS.slice(); }); },
+    getSpendBySupplier:function(){
+      return respond(function(empty){
+        if(empty) return {rows:[], grandTotalCents:0};
+        var byId={};
+        DELIVERIES.filter(function(d){return d.status==="delivered";}).forEach(function(d){
+          byId[d.supplierId]=(byId[d.supplierId]||0)+d.totalCents;
+        });
+        var rows=SUPPLIERS.filter(function(s){return byId[s.id];}).map(function(s){
+          return {supplierId:s.id, name:s.name, color:s.color, amountCents:byId[s.id]};
+        }).sort(function(a,b){return b.amountCents-a.amountCents;});
+        var grand=rows.reduce(function(t,r){return t+r.amountCents;},0);
+        return {rows:rows, grandTotalCents:grand};
+      });
+    },
+    getRecentDeliveries:function(limit){
+      return respond(function(empty){
+        if(empty) return [];
+        var now=Date.now();
+        return DELIVERIES
+          .filter(function(d){ var eff=new Date(d.deliveredAt||d.scheduledFor).getTime(); return eff<=now; })
+          .map(function(d){ return Object.assign({supplierName:supName(d.supplierId), effective:(d.deliveredAt||d.scheduledFor)}, d); })
+          .sort(function(a,b){ return new Date(b.effective)-new Date(a.effective); })
+          .slice(0, limit||8);
+      });
+    },
+    getUpcomingDeliveries:function(){
+      return respond(function(empty){
+        if(empty) return [];
+        var now=Date.now();
+        return DELIVERIES
+          .filter(function(d){ return d.status==="pending" && new Date(d.scheduledFor).getTime()>now; })
+          .map(function(d){ return Object.assign({supplierName:supName(d.supplierId)}, d); })
+          .sort(function(a,b){ return new Date(a.scheduledFor)-new Date(b.scheduledFor); });
+      });
+    },
+    getSupplierHistory:function(supplierId){
+      return respond(function(empty){
+        if(empty) return [];
+        return DELIVERIES
+          .filter(function(d){ return d.supplierId===supplierId && d.status==="delivered"; })
+          .map(function(d){ return {id:d.id, deliveredAt:d.deliveredAt, itemCount:d.lineItems.length, totalCents:d.totalCents}; })
+          .sort(function(a,b){ return new Date(b.deliveredAt)-new Date(a.deliveredAt); });
+      });
+    }
+  };
+
+/* =====================================================================
+   FORMATTERS
+   ===================================================================== */
+  var usd = new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"});
+  function money(cents){ return usd.format(cents/100); }
+  var fDate = new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"});
+  var fDateTime = new Intl.DateTimeFormat("en-US",{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+  function dateStr(iso){ return fDate.format(new Date(iso)); }
+  function dateTimeStr(iso){ return fDateTime.format(new Date(iso)); }
+  var rtf = new Intl.RelativeTimeFormat("en",{numeric:"auto"});
+  function countdown(iso){
+    var ms=new Date(iso)-Date.now();
+    var days=Math.round(ms/DAY), hours=Math.round(ms/3600000), mins=Math.round(ms/60000);
+    if(Math.abs(days)>=1) return rtf.format(days,"day");
+    if(Math.abs(hours)>=1) return rtf.format(hours,"hour");
+    return rtf.format(mins,"minute");
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+
+/* =====================================================================
+   STATE HELPERS
+   ===================================================================== */
+  function skelLines(n){ var h=""; for(var i=0;i<n;i++){ h+='<div class="skel skel-line" style="width:'+(60+Math.random()*35)+'%"></div>'; } return h; }
+  function skelRows(n){ var h=""; for(var i=0;i<n;i++){ h+='<div class="skel-row"><div class="skel skel-line" style="flex:1"></div><div class="skel skel-line" style="width:60px"></div></div>'; } return h; }
+  function errorState(onRetry){
+    return '<div class="state"><div class="err">Couldn\'t load this data.</div>'
+         + '<button class="retry" data-retry="'+onRetry+'">Retry</button></div>';
+  }
+
+  var toastTimer;
+  function toast(msg){ var t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.classList.remove("show");},2400); }
+
+/* =====================================================================
+   SECTION: SUPPLIER DIRECTORY
+   ===================================================================== */
+  var dirState={tab:"all", query:"", suppliers:null};
+  function initials(name){ var p=name.replace(/[^A-Za-z ]/g,"").trim().split(/\s+/); return ((p[0]||"")[0]||"")+((p[1]||"")[0]||""); }
+  // which suppliers have an upcoming (pending future) delivery
+  function pendingSet(){
+    var now=Date.now(), set={};
+    DELIVERIES.forEach(function(d){ if(d.status==="pending" && new Date(d.scheduledFor).getTime()>now) set[d.supplierId]=true; });
+    return set;
+  }
+
+  function renderDirectory(){
+    var host=document.getElementById("supList");
+    host.innerHTML='<div class="subtabs-skel"></div>'+skelRows(3);
+    document.getElementById("subtabs").innerHTML="";
+    api.getSuppliers().then(function(list){
+      dirState.suppliers=list;
+      document.getElementById("pageSub").textContent = list.length+" supplier"+(list.length===1?"":"s");
+      paintDirectory();
+    }).catch(function(){
+      document.getElementById("pageSub").textContent="—";
+      host.innerHTML=errorState("dir");
+      bindRetry();
+    });
+  }
+
+  function paintDirectory(){
+    var list=dirState.suppliers||[];
+    var pend=pendingSet();
+    var counts={all:list.length, active:list.length, pending:Object.keys(pend).length};
+    var defs=[["all","All "+counts.all],["active","Active"],["pending","Pending order"]];
+    document.getElementById("subtabs").innerHTML=defs.map(function(d){
+      return '<button class="subtab'+(dirState.tab===d[0]?" active":"")+'" data-tab="'+d[0]+'">'+d[1]+'</button>';
+    }).join("");
+    document.querySelectorAll("[data-tab]").forEach(function(b){ b.onclick=function(){ dirState.tab=b.getAttribute("data-tab"); paintDirectory(); }; });
+
+    var q=dirState.query.trim().toLowerCase();
+    var rows=list.filter(function(s){
+      if(dirState.tab==="pending" && !pend[s.id]) return false;
+      if(q && s.name.toLowerCase().indexOf(q)===-1 && !(s.contact && s.contact.toLowerCase().indexOf(q)>-1)) return false;
+      return true;
+    });
+    var host=document.getElementById("supList");
+    if(rows.length===0){ host.innerHTML='<div class="state"><div class="muted">No suppliers match.</div></div>'; return; }
+    host.innerHTML=rows.map(function(s){
+      var meta=s.contact?(esc(s.contact)+" · "+esc(s.schedule)):esc(s.schedule);
+      var tag=pend[s.id]?'<span class="pending-tag">Pending order</span>':'';
+      return '<div class="sup-row"><div class="avatar">'+esc(initials(s.name))+'</div>'
+        + '<div class="sup-info"><div class="sup-name">'+esc(s.name)+tag+'</div><div class="sup-meta">'+meta+'</div></div>'
+        + '<div class="sup-actions"><button class="edit-link" data-edit="'+s.id+'">Edit</button>'
+        + '<button class="view-btn" data-view="'+s.id+'">View</button></div></div>';
+    }).join("");
+    host.querySelectorAll("[data-edit]").forEach(function(b){ b.onclick=function(){ toast("Edit supplier form would open here."); }; });
+    host.querySelectorAll("[data-view]").forEach(function(b){ b.onclick=function(){ openHistory(b.getAttribute("data-view")); }; });
+  }
+
+/* =====================================================================
+   SECTION: SPEND BY SUPPLIER (donut)
+   ===================================================================== */
+  function renderSpend(){
+    var host=document.getElementById("spend");
+    host.innerHTML='<div class="donut-row"><div class="skel skel-circle"></div><div style="flex:1">'+skelLines(4)+'</div></div>';
+    api.getSpendBySupplier().then(function(data){
+      if(!data.rows.length || data.grandTotalCents===0){
+        host.innerHTML='<div class="state"><div class="muted">No spend yet.<br>Spend appears once deliveries are marked received.</div></div>';
+        return;
+      }
+      var r=46,cx=60,cy=60,C=2*Math.PI*r,off=0,segs="";
+      data.rows.forEach(function(row){
+        var len=row.amountCents/data.grandTotalCents*C, draw=Math.max(0,len-1.4);
+        segs+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+row.color+'" stroke-width="17" stroke-dasharray="'+draw+' '+(C-draw)+'" stroke-dashoffset="'+(-off)+'" transform="rotate(-90 '+cx+' '+cy+')"/>';
+        off+=len;
+      });
+      var legend=data.rows.map(function(row){
+        return '<div class="lg-row"><span class="lg-name"><span class="lg-dot" style="background:'+row.color+'"></span>'+esc(row.name)+'</span><span class="lg-val">'+money(row.amountCents)+'</span></div>';
+      }).join("");
+      host.innerHTML='<div class="donut-row">'
+        + '<svg class="donut" viewBox="0 0 120 120" role="img" aria-label="Spend by supplier">'+segs
+        + '<text class="d-lbl" x="60" y="56" text-anchor="middle">Total</text>'
+        + '<text class="d-val" x="60" y="71" text-anchor="middle">'+money(data.grandTotalCents)+'</text></svg>'
+        + '<div class="legend">'+legend+'<div class="lg-total"><span>Total spend</span><b>'+money(data.grandTotalCents)+'</b></div></div></div>';
+    }).catch(function(){ host.innerHTML=errorState("spend"); bindRetry(); });
+  }
+
+/* =====================================================================
+   SECTION: RECENT ORDERS (table)
+   ===================================================================== */
+  function itemsSummary(lineItems){
+    var names=lineItems.map(function(i){return i.name;});
+    var shown=names.slice(0,2).join(", ");
+    if(names.length>2) shown+=" +"+(names.length-2)+" more";
+    return shown;
+  }
+  function renderRecent(){
+    var host=document.getElementById("orders");
+    host.innerHTML=skelRows(5);
+    api.getRecentDeliveries(8).then(function(list){
+      if(!list.length){
+        host.innerHTML='<div class="state"><div class="muted">Delivery records will appear here once orders have been processed.</div></div>';
+        return;
+      }
+      host.innerHTML='<table class="otable"><thead><tr><th>Date</th><th>Supplier</th><th>Items</th><th style="text-align:right">Total</th><th>Status</th></tr></thead><tbody>'
+        + list.map(function(d){
+            var badge=d.status==="delivered"?'<span class="badge delivered">Delivered</span>':'<span class="badge pending">Pending</span>';
+            return '<tr><td class="o-date">'+dateStr(d.deliveredAt||d.scheduledFor)+'</td>'
+              + '<td class="o-sup">'+esc(d.supplierName)+'</td>'
+              + '<td class="o-items">'+esc(itemsSummary(d.lineItems))+'</td>'
+              + '<td class="o-total">'+money(d.totalCents)+'</td>'
+              + '<td>'+badge+'</td></tr>';
+          }).join("")
+        + '</tbody></table>';
+    }).catch(function(){ host.innerHTML=errorState("recent"); bindRetry(); });
+  }
+
+/* =====================================================================
+   SECTION: UPCOMING DELIVERIES (sidebar list)
+   ===================================================================== */
+  function renderUpcoming(){
+    var host=document.getElementById("upcoming");
+    host.innerHTML=skelRows(3);
+    api.getUpcomingDeliveries().then(function(list){
+      if(!list.length){
+        host.innerHTML='<div class="state"><div class="muted">No upcoming deliveries.<br>Scheduled deliveries will appear here.</div></div>';
+        return;
+      }
+      host.innerHTML=list.map(function(d){
+        return '<div class="deliv"><div class="avatar">'+esc(initials(d.supplierName))+'</div>'
+          + '<div class="deliv-info"><div class="deliv-name">'+esc(d.supplierName)+'</div>'
+          + '<div class="deliv-when">'+esc(countdown(d.scheduledFor))+' · '+dateTimeStr(d.scheduledFor)+'</div></div>'
+          + '<div class="deliv-count">'+d.lineItems.length+' item'+(d.lineItems.length===1?"":"s")+'</div></div>';
+      }).join("");
+    }).catch(function(){ host.innerHTML=errorState("upcoming"); bindRetry(); });
+  }
+
+/* =====================================================================
+   SECTION: DELIVERY HISTORY (per-supplier modal)
+   ===================================================================== */
+  var backdrop=document.getElementById("backdrop");
+  function openHistory(supplierId){
+    var s=(dirState.suppliers||SUPPLIERS).find(function(x){return x.id===supplierId;});
+    document.getElementById("modalTitle").textContent = s?s.name:"Supplier";
+    var body=document.getElementById("historyBody");
+    body.innerHTML='<table class="htable"><thead><tr><th>Date</th><th>Items</th><th style="text-align:right">Total</th></tr></thead><tbody>'
+      + '<tr><td colspan="3">'+'<div class="skel skel-line" style="width:90%"></div><div class="skel skel-line" style="width:80%"></div><div class="skel skel-line" style="width:85%"></div>'+'</td></tr></tbody></table>';
+    backdrop.classList.add("open");
+    document.getElementById("modalClose").focus();
+
+    api.getSupplierHistory(supplierId).then(function(rows){
+      if(!rows.length){
+        body.innerHTML='<div class="state"><div class="muted">No deliveries recorded for this supplier yet.</div></div>';
+        return;
+      }
+      var total=rows.reduce(function(t,r){return t+r.totalCents;},0);
+      body.innerHTML='<table class="htable"><thead><tr><th>Date</th><th>Items</th><th style="text-align:right">Total</th></tr></thead><tbody>'
+        + rows.map(function(r){ return '<tr><td>'+dateStr(r.deliveredAt)+'</td><td>'+r.itemCount+' item'+(r.itemCount===1?"":"s")+'</td><td class="h-total">'+money(r.totalCents)+'</td></tr>'; }).join("")
+        + '</tbody><tfoot><tr><td>'+rows.length+' deliveries</td><td></td><td class="h-total">'+money(total)+'</td></tr></tfoot></table>';
+    }).catch(function(){
+      body.innerHTML=errorState("history:"+supplierId);
+      bindRetry();
+    });
+  }
+  function closeHistory(){ backdrop.classList.remove("open"); }
+  document.getElementById("modalClose").onclick=closeHistory;
+  backdrop.addEventListener("click",function(e){ if(e.target===backdrop) closeHistory(); });
+  document.addEventListener("keydown",function(e){ if(e.key==="Escape") closeHistory(); });
+
+/* =====================================================================
+   WIRING
+   ===================================================================== */
+  function bindRetry(){
+    document.querySelectorAll("[data-retry]").forEach(function(b){
+      b.onclick=function(){
+        var which=b.getAttribute("data-retry");
+        if(which==="dir") renderDirectory();
+        else if(which==="spend") renderSpend();
+        else if(which==="recent") renderRecent();
+        else if(which==="upcoming") renderUpcoming();
+        else if(which.indexOf("history:")===0) openHistory(which.split(":")[1]);
+      };
+    });
+  }
+
+  function loadAll(){ renderDirectory(); renderSpend(); renderRecent(); renderUpcoming(); }
+
+  document.getElementById("search").addEventListener("input",function(e){ dirState.query=e.target.value; if(dirState.suppliers) paintDirectory(); });
+  document.getElementById("addSupplier").onclick=function(){ toast("Add supplier form would open here."); };
+
+  document.querySelectorAll(".demo-bar button").forEach(function(b){
+    b.onclick=function(){
+      DEMO=b.getAttribute("data-demo");
+      document.querySelectorAll(".demo-bar button").forEach(function(x){x.classList.remove("active");});
+      b.classList.add("active");
+      closeHistory();
+      loadAll();
+    };
+  });
+
+  loadAll();
+</script>
+</body>
+</html>

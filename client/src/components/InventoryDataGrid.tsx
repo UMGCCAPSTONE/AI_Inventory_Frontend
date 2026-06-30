@@ -5,7 +5,7 @@ import {
   type GridPaginationModel,
   type GridSortModel,
 } from '@mui/x-data-grid'
-import { Box, Button, Chip, Stack, TextField } from '@mui/material'
+import { Box, Button, Chip, Paper, Stack, TextField } from '@mui/material'
 import {
   categorySchema,
   type Category,
@@ -52,7 +52,7 @@ function InventoryDataGrid({ onEdit, onDelete }: InventoryDataGridProps) {
   const [sort, setSort] = useState<InventorySort>('name')
   const [order, setOrder] = useState<'asc' | 'desc'>('asc')
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(10)
 
   const search = useDebounce(searchInput, 300)
 
@@ -195,28 +195,35 @@ function InventoryDataGrid({ onEdit, onDelete }: InventoryDataGridProps) {
     )
   }
 
+  const chipSx = { fontWeight: 500, borderRadius: 999 } as const
+
   return (
     <Stack spacing={2} aria-label="Inventory">
       <TextField
-        label="Search items"
+        placeholder="Search items or suppliers…"
         size="small"
         value={searchInput}
         onChange={(e) => changeSearch(e.target.value)}
-        sx={{ maxWidth: 320 }}
+        slotProps={{ htmlInput: { 'aria-label': 'Search items' } }}
+        sx={{ maxWidth: 380 }}
       />
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }} aria-label="Category filters">
         <Chip
           label="All"
           color={category === undefined ? 'primary' : 'default'}
+          variant={category === undefined ? 'filled' : 'outlined'}
           onClick={() => changeCategory(undefined)}
+          sx={chipSx}
         />
         {categorySchema.options.map((value) => (
           <Chip
             key={value}
             label={CATEGORY_LABELS[value]}
             color={category === value ? 'primary' : 'default'}
+            variant={category === value ? 'filled' : 'outlined'}
             onClick={() => changeCategory(value)}
+            sx={chipSx}
           />
         ))}
       </Box>
@@ -224,20 +231,24 @@ function InventoryDataGrid({ onEdit, onDelete }: InventoryDataGridProps) {
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }} aria-label="Status filters">
         <Chip
           label="All statuses"
+          color={status === undefined ? 'primary' : 'default'}
           variant={status === undefined ? 'filled' : 'outlined'}
           onClick={() => changeStatus(undefined)}
+          sx={chipSx}
         />
         {STATUS_OPTIONS.map((option) => (
           <Chip
             key={option.value}
             label={option.label}
+            color={status === option.value ? 'primary' : 'default'}
             variant={status === option.value ? 'filled' : 'outlined'}
             onClick={() => changeStatus(option.value)}
+            sx={chipSx}
           />
         ))}
       </Box>
 
-      <Box>
+      <Paper variant="outlined" sx={{ boxShadow: 'var(--shadow)', overflow: 'hidden' }}>
         <DataGrid
           rows={data?.items ?? []}
           columns={columns}
@@ -255,6 +266,9 @@ function InventoryDataGrid({ onEdit, onDelete }: InventoryDataGridProps) {
           sortModel={sortModel}
           onSortModelChange={handleSortModelChange}
           pageSizeOptions={[10, 20, 50]}
+          // Skeleton rows while loading (not a progress bar), matching the
+          // stat-card skeletons.
+          slotProps={{ loadingOverlay: { variant: 'skeleton', noRowsVariant: 'skeleton' } }}
           slots={{
             noRowsOverlay: () => (
               <EmptyState
@@ -263,8 +277,26 @@ function InventoryDataGrid({ onEdit, onDelete }: InventoryDataGridProps) {
               />
             ),
           }}
+          sx={{
+            border: 'none',
+            '--DataGrid-rowBorderColor': 'var(--hairline-soft)',
+            '& .MuiDataGrid-columnHeaders': { bgcolor: 'background.paper' },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              fontSize: 11.5,
+              fontWeight: 600,
+              color: 'text.secondary',
+            },
+            '& .MuiDataGrid-columnSeparator': { display: 'none' },
+            '& .MuiDataGrid-cell': { fontSize: 14, color: 'text.secondary' },
+            '& .MuiDataGrid-row:hover': { bgcolor: 'var(--surface-2)' },
+            '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within':
+              { outline: 'none' },
+            '& .MuiDataGrid-footerContainer': { borderTop: '1px solid var(--hairline)' },
+          }}
         />
-      </Box>
+      </Paper>
     </Stack>
   )
 }

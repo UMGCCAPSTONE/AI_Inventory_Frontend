@@ -6,6 +6,7 @@ import {
   invalidateAfterWrite,
   queryKeys,
   updateRecommendationStatus,
+  type RecommendationScope,
 } from '../services'
 import { useToast } from '../components/Toaster'
 import { messageFor } from '../utils/apiError'
@@ -35,8 +36,8 @@ export function useRecommendations() {
 export function useGenerateRecommendations() {
   const queryClient = useQueryClient()
   const toast = useToast()
-  return useMutation<Recommendation[], unknown, void>({
-    mutationFn: () => generateRecommendations(),
+  return useMutation<Recommendation[], unknown, RecommendationScope | void>({
+    mutationFn: (scope) => generateRecommendations(scope || 'at-risk'),
     onSuccess: async (recommendations) => {
       await invalidateAfterWrite(queryClient, 'recommendation.generate')
       toast.success(`Generated ${recommendations.length} recommendations`)

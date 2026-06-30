@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
@@ -60,6 +60,8 @@ function makeMenuItem(overrides = {}) {
   return {
     id: 'm1',
     name: 'House Salad',
+    category: 'MAIN',
+    usesExpiringItems: false,
     isSpecial: false,
     status: 'ACTIVE',
     ingredients: [],
@@ -115,7 +117,22 @@ describe('MenuBuilderPage — US-MENU-1: page layout & generate', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /generate recommendations/i }))
 
-    await waitFor(() => expect(postMock).toHaveBeenCalledWith('/recommendations/generate'))
+    await waitFor(() =>
+      expect(postMock).toHaveBeenCalledWith('/recommendations/generate?scope=at-risk'),
+    )
+  })
+
+  it('generates from full inventory when the Full inventory scope is selected (T-72/#66)', async () => {
+    respondWith({})
+    postMock.mockResolvedValue([])
+    render(<MenuBuilderPage />, { wrapper })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Full inventory' }))
+    fireEvent.click(screen.getByRole('button', { name: /generate recommendations/i }))
+
+    await waitFor(() =>
+      expect(postMock).toHaveBeenCalledWith('/recommendations/generate?scope=full'),
+    )
   })
 
   it('shows a loading state while generation is in flight', async () => {
@@ -159,6 +176,27 @@ describe('MenuBuilderPage — US-MENU-2: recommendation detail', () => {
 
     expect(await screen.findByRole('article', { name: 'Soup' })).toBeInTheDocument()
     expect(screen.getByRole('article', { name: 'Stew' })).toBeInTheDocument()
+  })
+
+  it('caps AI Suggested Specials at 6 (newest first) with a See all toggle (T-72)', async () => {
+    const recs = Array.from({ length: 8 }, (_, i) =>
+      makeRec({
+        id: `r${i}`,
+        name: `Special ${i}`,
+        status: 'PROPOSED',
+        createdAt: `2026-01-0${i + 1}T00:00:00.000Z`,
+      }),
+    )
+    respondWith({ recommendations: recs })
+    render(<MenuBuilderPage />, { wrapper })
+
+    // Newest first: Special 7 shows; the two oldest are capped out of the feed.
+    await screen.findByRole('article', { name: 'Special 7' })
+    expect(screen.queryByRole('article', { name: 'Special 0' })).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: /see all 8/i }))
+
+    expect(await screen.findByRole('article', { name: 'Special 0' })).toBeInTheDocument()
   })
 
   it('displays availability from isAvailable — does not recompute from stock', async () => {
@@ -263,14 +301,14 @@ describe('MenuBuilderPage — ADR 0014: kind-aware actions', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument()
   })
 
-  it('shows an accepted recommendation as marked and non-actionable', async () => {
+  it('omits an accepted recommendation from the Active list (it moves to the menu) — T-72', async () => {
     respondWith({ recommendations: [makeRec({ status: 'ACCEPTED' })] })
     render(<MenuBuilderPage />, { wrapper })
 
-    await screen.findByRole('article', { name: 'Tomato Basil Soup' })
-    expect(screen.getByText('Accepted')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Accept' })).toBeNull()
-    expect(screen.queryByRole('button', { name: 'Dismiss' })).toBeNull()
+    // Active = PROPOSED only: an accepted dish is now a menu item, so it drops
+    // out of the AI-generated queue (reachable via Current menu + history).
+    expect(await screen.findByText('No recommendations yet')).toBeInTheDocument()
+    expect(screen.queryByRole('article', { name: 'Tomato Basil Soup' })).toBeNull()
   })
 })
 
@@ -305,6 +343,64 @@ describe('MenuBuilderPage — current menu section', () => {
     expect(await screen.findByText('House Salad')).toBeInTheDocument()
     expect(screen.queryByText('Old Special')).toBeNull()
   })
+
+  it('shows the "Uses expiring items" badge on a menu card when set (T-72)', async () => {
+    respondWith({ menu: [makeMenuItem({ id: 'm1', name: 'House Salad', usesExpiringItems: true })] })
+    render(<MenuBuilderPage />, { wrapper })
+
+    expect(await screen.findByText('Uses expiring items')).toBeInTheDocument()
+  })
+
+  it('caps each category at 6 (newest first) with a See all toggle (T-72)', async () => {
+    const items = Array.from({ length: 8 }, (_, i) =>
+      makeMenuItem({ id: `m${i}`, name: `Dish ${i}`, createdAt: `2026-01-0${i + 1}T00:00:00.000Z` }),
+    )
+    respondWith({ menu: items })
+    render(<MenuBuilderPage />, { wrapper })
+
+    // Newest first: Dish 7 (Jan 8) shows; the two oldest are capped out.
+    await screen.findByText('Dish 7')
+    expect(screen.queryByText('Dish 1')).toBeNull()
+    expect(screen.queryByText('Dish 0')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: /see all 8/i }))
+
+    expect(await screen.findByText('Dish 0')).toBeInTheDocument()
+    expect(screen.getByText('Dish 1')).toBeInTheDocument()
+  })
+
+  it('deletes a dish via the kebab + confirm dialog — PATCH status ARCHIVED (T-72)', async () => {
+    respondWith({ menu: [makeMenuItem({ id: 'm1', name: 'House Salad' })] })
+    patchMock.mockResolvedValue(makeMenuItem({ id: 'm1', status: 'ARCHIVED' }))
+    render(<MenuBuilderPage />, { wrapper })
+
+    await screen.findByText('House Salad')
+    // Open the kebab menu, then choose Delete.
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for House Salad' }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Delete' }))
+
+    // Confirm dialog opens; confirming fires the archive PATCH.
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete' }))
+
+    await waitFor(() =>
+      expect(patchMock).toHaveBeenCalledWith('/menu-items/m1', { status: 'ARCHIVED' }),
+    )
+  })
+
+  it('toggles a dish to special via the kebab — PATCH isSpecial true (T-72)', async () => {
+    respondWith({ menu: [makeMenuItem({ id: 'm1', name: 'House Salad', isSpecial: false })] })
+    patchMock.mockResolvedValue(makeMenuItem({ id: 'm1', isSpecial: true }))
+    render(<MenuBuilderPage />, { wrapper })
+
+    await screen.findByText('House Salad')
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for House Salad' }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Make special' }))
+
+    await waitFor(() =>
+      expect(patchMock).toHaveBeenCalledWith('/menu-items/m1', { isSpecial: true }),
+    )
+  })
 })
 
 describe('MenuBuilderPage — saved/history filter (T-8S folded)', () => {
@@ -325,6 +421,19 @@ describe('MenuBuilderPage — saved/history filter (T-8S folded)', () => {
     fireEvent.click(screen.getByText('Saved'))
     expect(await screen.findByRole('article', { name: 'Saved One' })).toBeInTheDocument()
     expect(screen.queryByRole('article', { name: 'Active One' })).toBeNull()
+  })
+
+  it('un-saves a saved recommendation back to PROPOSED (T-72)', async () => {
+    respondWith({ recommendations: [makeRec({ id: 'r1', name: 'Saved One', status: 'SAVED' })] })
+    patchMock.mockResolvedValue(makeRec({ id: 'r1', status: 'PROPOSED' }))
+    render(<MenuBuilderPage />, { wrapper })
+
+    fireEvent.click(screen.getByText('Saved'))
+    fireEvent.click(await screen.findByRole('button', { name: 'Unsave' }))
+
+    await waitFor(() =>
+      expect(patchMock).toHaveBeenCalledWith('/recommendations/r1', { status: 'PROPOSED' }),
+    )
   })
 })
 

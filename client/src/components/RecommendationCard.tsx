@@ -11,6 +11,7 @@ import {
   Typography,
 } from '@mui/material'
 import type { Recommendation, RecommendationStatus } from '@umgccapstone/contracts'
+import { CARD_TINTS } from '../utils/cardTints'
 
 type RecommendationCardProps = {
   recommendation: Recommendation
@@ -22,9 +23,6 @@ type RecommendationCardProps = {
   // mockup alternates warm tints). Index into TINTS; omit for no tint.
   tone?: number
 }
-
-// Soft tints for the AI-specials row (matches the mockup's peach/cream/sage cards).
-const TINTS = ['#FBEEE6', '#FCF6E5', '#EDF1EA'] as const
 
 const money = (value: number): string => `$${value.toFixed(2)}`
 
@@ -62,7 +60,10 @@ function RecommendationCard({ recommendation, onAction, pending, tone }: Recomme
   const isAccepted = status === 'ACCEPTED'
   const canAccept = status === 'PROPOSED' && kind === 'NEW'
   const canDismissOrSave = status === 'PROPOSED'
-  const bgcolor = tone === undefined ? undefined : TINTS[tone % TINTS.length]
+  // A saved rec can be un-saved — back to PROPOSED (the active queue + off the
+  // dashboard preview). The contract allows the PROPOSED transition.
+  const canUnsave = status === 'SAVED'
+  const bgcolor = tone === undefined ? undefined : CARD_TINTS[tone % CARD_TINTS.length]
 
   return (
     <Card component="article" aria-label={name} variant="outlined" sx={{ height: '100%', bgcolor }}>
@@ -170,6 +171,16 @@ function RecommendationCard({ recommendation, onAction, pending, tone }: Recomme
                 </Button>
                 <Button size="small" disabled={pending} onClick={() => onAction('SAVED')}>
                   Save
+                </Button>
+              </>
+            ) : null}
+            {canUnsave ? (
+              <>
+                <Button size="small" disabled={pending} onClick={() => onAction('DISMISSED')}>
+                  Dismiss
+                </Button>
+                <Button size="small" disabled={pending} onClick={() => onAction('PROPOSED')}>
+                  Unsave
                 </Button>
               </>
             ) : null}

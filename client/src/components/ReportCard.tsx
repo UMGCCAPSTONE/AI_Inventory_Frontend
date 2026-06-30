@@ -13,9 +13,18 @@ function ReportCard({ title, children }: ReportCardProps) {
   return (
     <Paper
       variant="outlined"
-      sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column' }}
+      sx={{
+        p: 3,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        boxShadow: 'var(--shadow)',
+      }}
     >
-      <Typography variant="h6" component="h2" sx={{ mb: 2 }}>
+      <Typography
+        component="h2"
+        sx={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 22, mb: 2.25 }}
+      >
         {title}
       </Typography>
       <Box sx={{ flex: 1 }}>{children}</Box>

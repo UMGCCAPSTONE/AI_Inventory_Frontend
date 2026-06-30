@@ -76,7 +76,7 @@ describe('InventoryDataGrid', () => {
 
     expect(await screen.findByRole('grid')).toBeInTheDocument()
     expect(mockFetchInventory).toHaveBeenCalledWith(
-      expect.objectContaining({ sort: 'name', order: 'asc', page: 1, pageSize: 20 }),
+      expect.objectContaining({ sort: 'name', order: 'asc', page: 1, pageSize: 10 }),
     )
   })
 

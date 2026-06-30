@@ -57,6 +57,7 @@ const recBase = {
   isAvailable: true,
   limitingIngredientId: null,
   kind: 'NEW' as const,
+  category: 'MAIN' as const,
   foodCost: 4,
   suggestedPrice: 13.33,
   margin: 0.7,
@@ -93,6 +94,8 @@ const menuFixture: MenuItem[] = [
   {
     id: 'menu-1',
     name: 'Branzino Special',
+    category: 'MAIN',
+    usesExpiringItems: false,
     isSpecial: true,
     status: 'ACTIVE',
     ingredients: [],
@@ -107,6 +110,8 @@ const menuFixture: MenuItem[] = [
   {
     id: 'menu-3',
     name: 'Garden Salad',
+    category: 'APPETIZER',
+    usesExpiringItems: false,
     isSpecial: false,
     status: 'ACTIVE',
     ingredients: [],
@@ -121,6 +126,8 @@ const menuFixture: MenuItem[] = [
   {
     id: 'menu-2',
     name: 'Old Archived Dish',
+    category: 'MAIN',
+    usesExpiringItems: false,
     isSpecial: false,
     status: 'ARCHIVED',
     ingredients: [],

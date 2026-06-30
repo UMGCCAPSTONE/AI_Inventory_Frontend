@@ -1,6 +1,7 @@
-import { Avatar, Box, Button, Chip, Typography } from '@mui/material'
+import { Avatar, Box, Button, Typography } from '@mui/material'
 import type { Supplier } from '@umgccapstone/contracts'
 import type { SupplierStatus } from '../types'
+import FadedChip from './FadedChip'
 
 type Props = {
   supplier: Supplier & { status?: SupplierStatus; nextDelivery?: string }
@@ -45,10 +46,13 @@ export default function SupplierCard({ supplier, onView, onEdit }: Props) {
     >
       <Avatar
         sx={{
-          bgcolor: 'grey.100',
-          color: 'text.primary',
+          bgcolor: 'var(--surface-2)',
+          color: 'text.secondary',
+          border: '1px solid',
+          borderColor: 'divider',
+          fontFamily: 'var(--font-display)',
           fontWeight: 600,
-          fontSize: '0.85rem',
+          fontSize: '0.9rem',
           flexShrink: 0,
         }}
       >
@@ -65,12 +69,13 @@ export default function SupplierCard({ supplier, onView, onEdit }: Props) {
       </Box>
 
       {supplier.status ? (
-        <Chip
-          size="small"
-          label={STATUS_LABEL[supplier.status]}
-          color={STATUS_COLOR[supplier.status]}
-          sx={{ flexShrink: 0 }}
-        />
+        <Box sx={{ flexShrink: 0 }}>
+          <FadedChip
+            label={STATUS_LABEL[supplier.status]}
+            color={STATUS_COLOR[supplier.status]}
+            minWidth={92}
+          />
+        </Box>
       ) : null}
 
       {supplier.nextDelivery ? (
@@ -83,12 +88,20 @@ export default function SupplierCard({ supplier, onView, onEdit }: Props) {
         </Typography>
       ) : null}
 
-      <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
         <Button
           size="small"
           onClick={onEdit}
           aria-label={`Edit ${supplier.name}`}
-          sx={{ color: 'text.secondary', minWidth: 'auto' }}
+          sx={{
+            color: 'primary.main',
+            minWidth: 'auto',
+            px: 0,
+            fontSize: 12.5,
+            fontWeight: 600,
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+          }}
         >
           Edit
         </Button>
@@ -97,6 +110,7 @@ export default function SupplierCard({ supplier, onView, onEdit }: Props) {
           variant="outlined"
           onClick={onView}
           aria-label={`View delivery history for ${supplier.name}`}
+          sx={{ fontSize: 12.5, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}
         >
           View
         </Button>

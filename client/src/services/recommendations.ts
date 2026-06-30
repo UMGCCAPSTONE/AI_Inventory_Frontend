@@ -1,5 +1,11 @@
-import type { Recommendation, RecommendationStatus } from '@umgccapstone/contracts'
+import type {
+  Recommendation,
+  RecommendationScope,
+  RecommendationStatus,
+} from '@umgccapstone/contracts'
 import { apiClient } from './apiClient'
+
+export type { RecommendationScope }
 
 // Recommendations service (T-8, Menu/Recommendation API). The recommendation DTO
 // carries a content snapshot (name, explanation, ingredientsUsed) plus live,
@@ -13,11 +19,15 @@ export async function fetchRecommendations(): Promise<Recommendation[]> {
   return (await apiClient.get<Recommendation[]>('/recommendations')) ?? []
 }
 
-// Generate a fresh set of recommendations (US-MENU-1). No body for MVP — the
-// engine reads current at-risk stock and the saved menu server-side. Returns the
-// newly generated PROPOSED set.
-export async function generateRecommendations(): Promise<Recommendation[]> {
-  return (await apiClient.post<Recommendation[]>('/recommendations/generate')) ?? []
+// Generate a fresh set of recommendations (US-MENU-1). The engine reads current
+// stock + the saved menu server-side; `scope` chooses the ingredient pool.
+// Returns the newly generated PROPOSED set.
+export async function generateRecommendations(
+  scope: RecommendationScope = 'at-risk',
+): Promise<Recommendation[]> {
+  return (
+    (await apiClient.post<Recommendation[]>(`/recommendations/generate?scope=${scope}`)) ?? []
+  )
 }
 
 // Accept / dismiss / save a recommendation (US-MENU-3/4/5). Status transition per

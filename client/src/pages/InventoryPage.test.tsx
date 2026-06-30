@@ -133,6 +133,7 @@ describe.skip('InventoryPage — US-INV-2: item grid', () => {
 const supplier: Supplier = {
   id: 'sup-1',
   name: 'Fresh Farms',
+  totalSpend: 0,
   createdAt: '2026-06-01T00:00:00Z',
   updatedAt: '2026-06-01T00:00:00Z',
 }

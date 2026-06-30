@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mise — Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1EDE3; --surface:#FBF9F2; --surface-2:#F6F2E8;
+    --ink:#1F1B16; --ink-soft:#5C544A; --muted:#938A7C;
+    --hairline:rgba(31,27,22,.10); --hairline-soft:rgba(31,27,22,.06);
+    --terra:#A8392A; --terra-soft:#FBEAE4;
+    --amber:#B5832A; --amber-soft:#F6ECD6;
+    --sage:#5E6E45; --sage-soft:#EBEFE0;
+    --radius:14px; --shadow:0 1px 2px rgba(31,27,22,.04), 0 8px 24px rgba(31,27,22,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{background:var(--bg);color:var(--ink);font-family:"Inter",system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1400px;margin:0 auto;padding:0 40px}
+
+  /* Nav */
+  header.nav{display:flex;align-items:center;gap:36px;padding:26px 0 22px}
+  .brand{display:flex;align-items:center;gap:14px;text-decoration:none;color:inherit}
+  .mark{width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-family:"Fraunces",serif;font-weight:600;font-style:italic;font-size:22px;flex:none}
+  .brand-name{font-family:"Fraunces",serif;font-weight:600;font-size:30px;letter-spacing:-.01em}
+  .brand-tag{font-family:"Fraunces",serif;font-style:italic;color:var(--muted);font-size:16px;margin-left:2px}
+  nav.tabs{display:flex;align-items:center;gap:6px;margin-left:8px}
+  .tab{font-size:15px;color:var(--ink-soft);text-decoration:none;padding:8px 16px;border-radius:9px;transition:background .15s ease,color .15s ease}
+  .tab:hover{background:var(--surface-2);color:var(--ink)}
+  .tab.active{background:var(--ink);color:var(--surface);font-weight:500}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .service{border:1px solid var(--hairline);border-radius:11px;padding:7px 18px;text-align:center;background:var(--surface)}
+  .service .lbl{font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+  .service .val{font-family:"Fraunces",serif;font-style:italic;font-weight:500;font-size:16px;margin-top:1px}
+  .signin{display:flex;align-items:center;gap:10px;border:1px solid var(--hairline);border-radius:999px;padding:8px 20px 8px 10px;background:var(--surface);cursor:pointer;font:inherit;font-size:15px;color:var(--ink);transition:box-shadow .15s ease,border-color .15s ease}
+  .signin:hover{box-shadow:var(--shadow);border-color:rgba(31,27,22,.18)}
+  .signin .dot{width:24px;height:24px;border-radius:50%;background:var(--terra);flex:none}
+
+  /* Page head */
+  .page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:28px 0 18px;flex-wrap:wrap}
+  .page-title{font-family:"Fraunces",serif;font-weight:500;font-size:clamp(38px,5vw,56px);letter-spacing:-.02em;line-height:1}
+  .page-sub{font-size:14.5px;color:var(--muted);margin-top:9px}
+  .head-actions{display:flex;gap:12px;align-items:center;padding-top:6px}
+  .btn{font:inherit;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:11px 20px;border-radius:10px;cursor:pointer;transition:transform .12s ease,box-shadow .15s ease,background .15s ease}
+  .btn:active{transform:translateY(1px)}
+  .btn-ghost{background:var(--surface);border:1px solid rgba(168,57,42,.35);color:var(--terra)}
+  .btn-ghost:hover{background:var(--terra-soft)}
+  .btn-solid{background:var(--terra);border:1px solid var(--terra);color:#fff}
+  .btn-solid:hover{box-shadow:var(--shadow);background:#963122}
+
+  /* Stat cards */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin:6px 0 30px}
+  .stat{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow)}
+  .stat .lbl{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .stat .num{font-family:"Fraunces",serif;font-weight:600;font-size:42px;line-height:1.05;margin:8px 0 2px;letter-spacing:-.01em}
+  .stat .sub{font-size:13px;color:var(--ink-soft)}
+  .stat.warn .num{color:var(--amber)}
+  .stat.alert .num{color:var(--terra)}
+
+  /* Controls */
+  .controls{margin-bottom:6px}
+  .search{max-width:380px;margin-bottom:16px}
+  .search input{width:100%;padding:12px 16px;border:1px solid var(--hairline);border-radius:11px;background:var(--surface);font:inherit;font-size:14.5px;color:var(--ink)}
+  .search input::placeholder{color:var(--muted)}
+  .search input:focus{outline:2px solid var(--terra);outline-offset:1px;border-color:transparent}
+  .chiprow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .chiprow.status{margin-bottom:20px}
+  .chip{font:inherit;font-size:13px;font-weight:500;color:var(--ink-soft);background:var(--surface);border:1px solid var(--hairline);padding:7px 14px;border-radius:999px;cursor:pointer;transition:background .15s ease,color .15s ease,border-color .15s ease}
+  .chip:hover{background:var(--surface-2);color:var(--ink)}
+  .chip.active{background:var(--terra);color:#fff;border-color:var(--terra)}
+
+  /* Table */
+  .panel{background:var(--surface);border:1px solid var(--hairline);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;min-width:920px}
+  th{text-align:left;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:16px;border-bottom:1px solid var(--hairline);white-space:nowrap}
+  th.sortable{cursor:pointer;user-select:none}
+  th.sortable:hover{color:var(--ink)}
+  th .arrow{margin-left:5px;font-size:11px;opacity:.55}
+  td{padding:15px 16px;border-bottom:1px solid var(--hairline-soft);font-size:14px;color:var(--ink-soft);vertical-align:middle;white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover td{background:var(--surface-2)}
+  .item-cell{display:flex;align-items:center;gap:10px}
+  .item-name{font-size:14.5px;font-weight:500;color:var(--ink)}
+  .supplier{max-width:160px;overflow:hidden;text-overflow:ellipsis}
+
+  /* badges */
+  .pill{font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap;display:inline-block}
+  .pill.low{background:var(--amber);color:#fff}
+  .pill.stable{border:1px solid rgba(94,110,69,.5);color:var(--sage)}
+  .pill.soon{background:var(--amber);color:#fff}
+  .pill.urgent{background:var(--terra);color:#fff}
+  .pill.none{border:1px solid var(--hairline);color:var(--muted);min-width:34px;text-align:center}
+  .dash{color:var(--muted)}
+
+  .row-actions{display:flex;gap:8px;justify-content:flex-end}
+  .mini{font:inherit;font-size:11.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:6px 12px;border-radius:8px;cursor:pointer;background:var(--surface);border:1px solid var(--hairline);color:var(--terra);transition:background .15s ease}
+  .mini:hover{background:var(--terra-soft)}
+  .mini.del{color:var(--ink-soft)}
+  .mini.del:hover{background:var(--surface-2);color:var(--terra)}
+
+  .table-foot{display:flex;align-items:center;justify-content:flex-end;gap:18px;padding:16px 20px;font-size:13px;color:var(--ink-soft)}
+  .rpp{display:flex;align-items:center;gap:8px}
+  .rpp select{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--hairline);border-radius:8px;background:var(--surface);color:var(--ink);cursor:pointer}
+  .pager{display:flex;gap:4px}
+  .pg{width:30px;height:30px;border-radius:8px;border:1px solid var(--hairline);background:var(--surface);cursor:pointer;color:var(--ink);font-size:14px;display:grid;place-items:center}
+  .pg:disabled{opacity:.35;cursor:default}
+  .pg:not(:disabled):hover{background:var(--surface-2)}
+  .empty-row td{text-align:center;color:var(--muted);padding:48px 0}
+
+  /* Toast */
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 22px;border-radius:11px;font-size:14px;font-weight:500;box-shadow:0 10px 30px rgba(31,27,22,.25);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;max-width:90vw;z-index:60}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .spacer{height:56px}
+  a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--terra);outline-offset:3px;border-radius:6px}
+
+  @media (max-width:1040px){.stats{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:900px){.wrap{padding:0 22px}header.nav{flex-wrap:wrap;gap:18px}nav.tabs{order:3;width:100%;overflow-x:auto}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="nav">
+    <a class="brand" href="index.html" aria-label="Mise home">
+      <div class="mark">M</div>
+      <span class="brand-name">Mise</span>
+      <span class="brand-tag">smart kitchen inventory</span>
+    </a>
+    <nav class="tabs">
+      <a class="tab" href="index.html">Today</a>
+      <a class="tab active" href="inventory.html">Inventory</a>
+      <a class="tab" href="menu.html">Menu</a>
+      <a class="tab" href="#">Suppliers</a>
+      <a class="tab" href="#">Reports</a>
+    </nav>
+    <div class="nav-right">
+      <div class="service">
+        <div class="lbl">Service</div>
+        <div class="val">Not set</div>
+      </div>
+      <button class="signin"><span class="dot"></span>Sign in</button>
+    </div>
+  </header>
+
+  <div class="page-head">
+    <div>
+      <h1 class="page-title">Inventory items</h1>
+      <div class="page-sub" id="pageSub">—</div>
+    </div>
+    <div class="head-actions">
+      <button class="btn btn-ghost" id="exportCsv">Export CSV</button>
+      <button class="btn btn-solid" id="addItem">+ Add item</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="lbl">Total items</div><div class="num" id="sTotal">0</div><div class="sub">items tracked</div></div>
+    <div class="stat warn"><div class="lbl">Expiring soon</div><div class="num" id="sExp">0</div><div class="sub">within 7 days</div></div>
+    <div class="stat alert"><div class="lbl">At-risk value</div><div class="num" id="sRisk">$0.00</div><div class="sub">tied up in at-risk stock</div></div>
+    <div class="stat alert"><div class="lbl">Below par</div><div class="num" id="sPar">0</div><div class="sub">low stock</div></div>
+  </div>
+
+  <div class="controls">
+    <div class="search"><input type="text" id="search" placeholder="Search items or suppliers…" aria-label="Search items"></div>
+    <div class="chiprow" id="catRow"></div>
+    <div class="chiprow status" id="statusRow"></div>
+  </div>
+
+  <div class="panel">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="sortable" data-sort="name">Item <span class="arrow" data-arrow="name"></span></th>
+            <th class="sortable" data-sort="stock">Stock <span class="arrow" data-arrow="stock"></span></th>
+            <th class="sortable" data-sort="expiry">Expiry <span class="arrow" data-arrow="expiry"></span></th>
+            <th class="sortable" data-sort="atrisk">At-risk <span class="arrow" data-arrow="atrisk"></span></th>
+            <th>Par / Reorder</th>
+            <th>Supplier</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="table-foot">
+      <div class="rpp">Rows per page
+        <select id="rpp"><option>10</option><option selected>20</option><option>50</option></select>
+      </div>
+      <div id="rangeLabel">0–0 of 0</div>
+      <div class="pager">
+        <button class="pg" id="prev" aria-label="Previous page">‹</button>
+        <button class="pg" id="next" aria-label="Next page">›</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  var CATEGORIES = ["Produce","Meat","Seafood","Dairy","Dry Goods","Beverage","Frozen","Other"];
+  var uid = 0;
+  // expiry: {type:'none'|'stable'|'soon'|'expired', days:Number}
+  function item(name,cat,stock,unit,exp,atrisk,par,supplier,low){
+    return {id:++uid,name:name,cat:cat,stock:stock,unit:unit,exp:exp,atrisk:atrisk,par:par,supplier:supplier,low:!!low};
+  }
+  var inv = [
+    item("All-purpose flour","Dry Goods",25,"kg",{type:"none"},null,"10 kg · Monthly","Dry Goods Distributors",false),
+    item("Chicken breast","Meat",15,"kg",{type:"stable"},null,"5 kg · Weekly (Tue)","Acme Produce Co.",false),
+    item("Fresh basil","Produce",1.5,"kg",{type:"stable"},null,"0.5 kg","—",false),
+    item("Fresh mozzarella","Dairy",4,"kg",{type:"soon",days:5},30.00,"2 kg · Weekly (Tue)","Acme Produce Co.",false),
+    item("Frozen peas","Frozen",10,"kg",{type:"stable"},null,"4 kg · Monthly","Dry Goods Distributors",false),
+    item("Frozen shrimp","Seafood",5,"kg",{type:"soon",days:7},70.00,"2 kg · Twice weekly","Harbor Seafood",false),
+    item("House red wine","Beverage",5,"case",{type:"none"},null,"2 case · Monthly","Dry Goods Distributors",false),
+    item("Olive oil","Other",3,"l",{type:"none"},27.00,"5 l · Monthly","Dry Goods Distributors",true),
+    item("Orange juice","Beverage",6,"l",{type:"expired"},12.00,"2 l · Weekly (Tue)","Acme Produce Co.",false),
+    item("Parmesan","Dairy",6,"kg",{type:"stable"},null,"2 kg · Weekly (Tue)","Acme Produce Co.",false),
+    item("Roma tomato","Produce",8,"kg",{type:"soon",days:5},20.00,"3 kg · Weekly (Tue)","Acme Produce Co.",false),
+    item("Romaine lettuce","Produce",2,"each",{type:"stable"},2.40,"5 each · Weekly (Tue)","Acme Produce Co.",true),
+    item("Salmon fillet","Seafood",0.2,"kg",{type:"soon",days:1},3.60,"2 kg · Twice weekly","Harbor Seafood",true),
+    item("Table salt","Dry Goods",5,"kg",{type:"none"},null,"1 kg · Monthly","Dry Goods Distributors",false),
+    item("Whole milk","Dairy",20,"l",{type:"stable"},null,"8 l · Weekly (Tue)","Acme Produce Co.",false)
+  ];
+
+  var state = {cat:"All", status:"All", query:"", sort:"name", dir:1, page:1, rpp:20};
+
+  function isExpiring(d){ return d.exp.type==="soon" || d.exp.type==="expired"; }
+  function expRank(d){ // smaller = more urgent
+    if(d.exp.type==="expired") return -1;
+    if(d.exp.type==="soon") return d.exp.days;
+    if(d.exp.type==="stable") return 900;
+    return 1000;
+  }
+  function money(n){ return "$"+Number(n).toFixed(2); }
+
+  var toastTimer;
+  function toast(msg){
+    var t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+    clearTimeout(toastTimer); toastTimer=setTimeout(function(){t.classList.remove("show");},2800);
+  }
+
+  function expiryPill(d){
+    if(d.exp.type==="stable") return '<span class="pill stable">Stable</span>';
+    if(d.exp.type==="expired") return '<span class="pill urgent">Expired</span>';
+    if(d.exp.type==="soon"){
+      var cls = d.exp.days<=2 ? "urgent" : "soon";
+      return '<span class="pill '+cls+'">'+d.exp.days+'d left</span>';
+    }
+    return '<span class="pill none">—</span>';
+  }
+
+  function filtered(){
+    var q = state.query.trim().toLowerCase();
+    var list = inv.filter(function(d){
+      if(state.cat!=="All" && d.cat!==state.cat) return false;
+      if(state.status==="Low stock" && !d.low) return false;
+      if(state.status==="Expiring soon" && !isExpiring(d)) return false;
+      if(state.status==="OK" && (d.low || isExpiring(d))) return false;
+      if(q && d.name.toLowerCase().indexOf(q)===-1 && d.supplier.toLowerCase().indexOf(q)===-1) return false;
+      return true;
+    });
+    list.sort(function(a,b){
+      var av,bv;
+      if(state.sort==="name"){ av=a.name.toLowerCase(); bv=b.name.toLowerCase(); }
+      else if(state.sort==="stock"){ av=a.stock; bv=b.stock; }
+      else if(state.sort==="expiry"){ av=expRank(a); bv=expRank(b); }
+      else { av=a.atrisk||0; bv=b.atrisk||0; }
+      if(av<bv) return -1*state.dir;
+      if(av>bv) return 1*state.dir;
+      return 0;
+    });
+    return list;
+  }
+
+  function renderChips(){
+    var cat = '<button class="chip'+(state.cat==="All"?" active":"")+'" data-cat="All">All</button>';
+    CATEGORIES.forEach(function(c){ cat += '<button class="chip'+(state.cat===c?" active":"")+'" data-cat="'+c+'">'+c+'</button>'; });
+    document.getElementById("catRow").innerHTML = cat;
+
+    var statuses = ["All statuses","Low stock","Expiring soon","OK"];
+    var s = "";
+    statuses.forEach(function(st){
+      var key = st==="All statuses" ? "All" : st;
+      s += '<button class="chip'+(state.status===key?" active":"")+'" data-status="'+key+'">'+st+'</button>';
+    });
+    document.getElementById("statusRow").innerHTML = s;
+
+    document.querySelectorAll("[data-cat]").forEach(function(b){ b.onclick=function(){ state.cat=b.getAttribute("data-cat"); state.page=1; render(); }; });
+    document.querySelectorAll("[data-status]").forEach(function(b){ b.onclick=function(){ state.status=b.getAttribute("data-status"); state.page=1; render(); }; });
+  }
+
+  function renderStats(){
+    document.getElementById("sTotal").textContent = inv.length;
+    document.getElementById("sExp").textContent = inv.filter(isExpiring).length;
+    document.getElementById("sRisk").textContent = money(inv.reduce(function(s,d){return s+(d.atrisk||0);},0));
+    document.getElementById("sPar").textContent = inv.filter(function(d){return d.low;}).length;
+    document.getElementById("pageSub").textContent = inv.length+" items tracked · Updated 10h ago";
+  }
+
+  function renderArrows(){
+    document.querySelectorAll("[data-arrow]").forEach(function(a){
+      a.textContent = (a.getAttribute("data-arrow")===state.sort) ? (state.dir===1?"↑":"↓") : "";
+    });
+  }
+
+  function render(){
+    renderStats();
+    renderChips();
+    renderArrows();
+
+    var list = filtered();
+    var total = list.length;
+    var pages = Math.max(1, Math.ceil(total/state.rpp));
+    if(state.page>pages) state.page=pages;
+    var start = (state.page-1)*state.rpp;
+    var pageItems = list.slice(start, start+state.rpp);
+
+    var tb = document.getElementById("tbody");
+    if(pageItems.length===0){
+      tb.innerHTML = '<tr class="empty-row"><td colspan="7">No items match these filters.</td></tr>';
+    } else {
+      tb.innerHTML = pageItems.map(function(d){
+        var low = d.low ? ' <span class="pill low">Low stock</span>' : '';
+        var risk = d.atrisk ? money(d.atrisk) : '<span class="dash">—</span>';
+        var sup = d.supplier==="—" ? '<span class="dash">—</span>' : d.supplier;
+        return '<tr>'
+          + '<td><div class="item-cell"><span class="item-name">'+d.name+'</span>'+low+'</div></td>'
+          + '<td>'+d.stock+' '+d.unit+'</td>'
+          + '<td>'+expiryPill(d)+'</td>'
+          + '<td>'+risk+'</td>'
+          + '<td>'+d.par+'</td>'
+          + '<td class="supplier" title="'+d.supplier+'">'+sup+'</td>'
+          + '<td><div class="row-actions"><button class="mini" data-edit="'+d.id+'">Edit</button>'
+          + '<button class="mini del" data-del="'+d.id+'">Delete</button></div></td>'
+          + '</tr>';
+      }).join("");
+    }
+
+    var shownStart = total===0 ? 0 : start+1;
+    var shownEnd = Math.min(start+state.rpp, total);
+    document.getElementById("rangeLabel").textContent = shownStart+"–"+shownEnd+" of "+total;
+    document.getElementById("prev").disabled = state.page<=1;
+    document.getElementById("next").disabled = state.page>=pages;
+
+    tb.querySelectorAll("[data-del]").forEach(function(b){
+      b.onclick=function(){ var id=parseInt(b.getAttribute("data-del"),10); inv=inv.filter(function(d){return d.id!==id;}); render(); toast("Item deleted."); };
+    });
+    tb.querySelectorAll("[data-edit]").forEach(function(b){
+      b.onclick=function(){ toast("Edit form would open here."); };
+    });
+  }
+
+  // sorting
+  document.querySelectorAll("th.sortable").forEach(function(th){
+    th.onclick=function(){
+      var key=th.getAttribute("data-sort");
+      if(state.sort===key) state.dir*=-1; else { state.sort=key; state.dir=1; }
+      render();
+    };
+  });
+
+  // search
+  document.getElementById("search").addEventListener("input",function(e){ state.query=e.target.value; state.page=1; render(); });
+
+  // rows per page
+  document.getElementById("rpp").addEventListener("change",function(e){ state.rpp=parseInt(e.target.value,10); state.page=1; render(); });
+  document.getElementById("prev").onclick=function(){ if(state.page>1){state.page--; render();} };
+  document.getElementById("next").onclick=function(){ state.page++; render(); };
+
+  // add item
+  document.getElementById("addItem").onclick=function(){
+    inv.unshift(item("New item","Other",0,"kg",{type:"none"},null,"—","—",false));
+    state.page=1; render(); toast("New item added — fill in its details.");
+  };
+
+  // export CSV (of current filtered view)
+  document.getElementById("exportCsv").onclick=function(){
+    var rows=[["Item","Category","Stock","Expiry","At-risk","Par/Reorder","Supplier","Low stock"]];
+    filtered().forEach(function(d){
+      var e = d.exp.type==="soon" ? (d.exp.days+"d left") : (d.exp.type==="expired"?"Expired":(d.exp.type==="stable"?"Stable":"—"));
+      rows.push([d.name,d.cat,d.stock+" "+d.unit,e,d.atrisk?money(d.atrisk):"—",d.par,d.supplier,d.low?"Yes":"No"]);
+    });
+    var csv = rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(","); }).join("\n");
+    var blob = new Blob([csv],{type:"text/csv"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "inventory.csv"; a.click();
+    URL.revokeObjectURL(a.href);
+    toast("Exported "+(rows.length-1)+" items to CSV.");
+  };
+
+  render();
+</script>
+</body>
+</html>

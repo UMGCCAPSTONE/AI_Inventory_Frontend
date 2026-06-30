@@ -43,6 +43,7 @@ const mockFetch = vi.mocked(fetchSupplierDeliveries)
 const supplier: Supplier = {
   id: 's1',
   name: 'Acme Produce',
+  totalSpend: 1250,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
 }
