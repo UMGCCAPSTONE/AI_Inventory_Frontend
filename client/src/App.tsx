@@ -33,8 +33,7 @@ function App() {
   const avatarInitial =
     user?.displayName?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? null
 
-  const firstName = user?.displayName?.trim().split(/\s+/)[0] ?? null
-  const displayName = firstName ? `Chef ${firstName}` : user?.email ?? null
+  const displayName = user?.displayName ?? user?.email ?? null
 
   return (
     <>

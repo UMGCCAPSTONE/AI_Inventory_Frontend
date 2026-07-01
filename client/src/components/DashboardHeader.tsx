@@ -14,13 +14,14 @@ const GREETING_HOUR = new Date(Date.now()).getHours()
 const TIME_GREETING =
   GREETING_HOUR < 12 ? 'Good morning' : GREETING_HOUR < 18 ? 'Good afternoon' : 'Good evening'
 
-// How to address the chef. Use the signed-in Firebase user's first name when
-// there is one, otherwise the friendly default "Chef". Read from
+// How to address the chef: "Chef <FirstName>" when the signed-in Firebase user
+// has a display name, otherwise the friendly default "Chef" on its own. Read from
 // firebaseAuth.currentUser (not useAuth) so the greeting renders without an
 // AuthProvider and degrades cleanly when Firebase is disabled.
 function chefName(): string {
   const display = firebaseAuth?.currentUser?.displayName?.trim()
-  return display ? display.split(/\s+/)[0] : 'Chef'
+  const first = display ? display.split(/\s+/)[0] : null
+  return first ? `Chef ${first}` : 'Chef'
 }
 
 // Dashboard hero + KPI bar (T-6A / T-42). Greeting personalises with the Firebase
