@@ -37,6 +37,16 @@ CMD ["npm", "run", "dev", "--", "--host"]
 # ---- build: type-check + bundle to dist/ --------------------------------------
 FROM base AS build
 ARG VITE_API_BASE_URL
+# Firebase web config (PUBLIC client identifiers, not secrets) — Vite inlines these
+# into the bundle at build time so the SPA renders the Google login wall (all four
+# required; App.tsx gates on them). Passed as build args by the prod compose (T-23),
+# sourced from GitHub repo variables via deploy.yml. Absent -> the app builds
+# login-less (isFirebaseConfigured=false), a safe default. VITE_* vars are inlined,
+# never runtime — same as VITE_API_BASE_URL above.
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_AUTH_DOMAIN
+ARG VITE_FIREBASE_PROJECT_ID
+ARG VITE_FIREBASE_APP_ID
 COPY client/ ./
 RUN npm run build
 
