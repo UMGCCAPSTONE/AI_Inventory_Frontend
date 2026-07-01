@@ -139,6 +139,8 @@ function SuppliersPage() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: 2,
           mb: 4,
         }}
       >
