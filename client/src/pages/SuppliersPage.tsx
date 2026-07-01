@@ -139,6 +139,8 @@ function SuppliersPage() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'flex-start',
+          flexWrap: 'wrap',
+          gap: 2,
           mb: 4,
         }}
       >
@@ -159,7 +161,10 @@ function SuppliersPage() {
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', lg: '1.7fr 1fr' },
+          // minmax(0, …) so the tracks never exceed the viewport: a bare 1fr keeps
+          // an `auto` minimum, letting wide content (orders table, cards) force the
+          // column past the screen and break mobile layout.
+          gridTemplateColumns: { xs: 'minmax(0, 1fr)', lg: 'minmax(0, 1.7fr) minmax(0, 1fr)' },
           gap: 3,
           alignItems: 'start',
         }}

@@ -66,7 +66,7 @@ function ReportsPage() {
           // minmax(0, 1fr), not 1fr: a bare 1fr track has an `auto` minimum, so a
           // panel with wide intrinsic content (the bar chart) won't shrink and steals
           // width from its row-mate. minmax(0, …) forces a true 50/50 split.
-          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) minmax(0, 1fr)' },
+          gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) minmax(0, 1fr)' },
           alignItems: 'stretch',
         }}
       >
@@ -87,7 +87,7 @@ function ReportsPage() {
           // minmax(0, 1fr), not 1fr: a bare 1fr track has an `auto` minimum, so a
           // panel with wide intrinsic content (the bar chart) won't shrink and steals
           // width from its row-mate. minmax(0, …) forces a true 50/50 split.
-          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) minmax(0, 1fr)' },
+          gridTemplateColumns: { xs: 'minmax(0, 1fr)', md: 'minmax(0, 1fr) minmax(0, 1fr)' },
           alignItems: 'start',
         }}
       >
