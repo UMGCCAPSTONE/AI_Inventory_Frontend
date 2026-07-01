@@ -58,11 +58,17 @@ html,
 body,
 #root {
   min-width: 320px;
-  min-height: 100%;
+  /* Fill the viewport on short pages (e.g. a nearly-empty Inventory/Suppliers)
+     so the warm background reaches the bottom instead of collapsing to content
+     height and revealing the browser's default page background below. `100%`
+     doesn't chain reliably without a definite parent height, so use vh. */
+  min-height: 100vh;
 }
 
 body {
   margin: 0;
+  /* Belt-and-suspenders: keep the warm background even if #root under-fills. */
+  background: var(--bg);
 }
 
 button,
