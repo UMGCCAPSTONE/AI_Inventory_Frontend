@@ -41,15 +41,29 @@ function TopDishesByPrice() {
   return (
     <Box
       aria-label="Top dishes by suggested price"
-      sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', gap: 1 }}
+      sx={{
+        height: '100%',
+        minHeight: BAR_AREA + 48,
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'space-around',
+        gap: 1,
+      }}
     >
       {dishes.map((dish, i) => (
         <Box
           key={dish.id}
-          sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
         >
           <Box
-            sx={{ height: BAR_AREA, width: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+            sx={{ flex: 1, minHeight: 0, width: '100%', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
           >
             <Box
               sx={{
