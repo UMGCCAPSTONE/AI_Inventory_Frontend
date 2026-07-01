@@ -13,13 +13,7 @@ function ReportCard({ title, children }: ReportCardProps) {
   return (
     <Paper
       variant="outlined"
-      sx={{
-        p: 3,
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        boxShadow: 'var(--shadow)',
-      }}
+      sx={{ p: 3, boxShadow: 'var(--shadow)', display: 'flex', flexDirection: 'column' }}
     >
       <Typography
         component="h2"
@@ -27,6 +21,8 @@ function ReportCard({ title, children }: ReportCardProps) {
       >
         {title}
       </Typography>
+      {/* flex:1 lets content fill the card when the grid row stretches it to a
+          taller row-mate; harmless (content height) when the row isn't stretched. */}
       <Box sx={{ flex: 1 }}>{children}</Box>
     </Paper>
   )

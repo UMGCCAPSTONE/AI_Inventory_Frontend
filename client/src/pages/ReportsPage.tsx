@@ -58,6 +58,7 @@ function ReportsPage() {
         )}
       </Box>
 
+      {/* Row 1: equal height — the shorter panel (bars) fills to match the donut. */}
       <Box
         sx={{
           display: 'grid',
@@ -72,6 +73,18 @@ function ReportsPage() {
         <ReportCard title="Top dishes by price">
           <TopDishesByPrice />
         </ReportCard>
+      </Box>
+
+      {/* Row 2: content height — both are paginated, so no stretch-to-match. */}
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 3,
+          mt: 3,
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+          alignItems: 'start',
+        }}
+      >
         <ReportCard title="Recommendation history">
           <RecommendationHistoryList />
         </ReportCard>
