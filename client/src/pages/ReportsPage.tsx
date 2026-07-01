@@ -63,7 +63,9 @@ function ReportsPage() {
           display: 'grid',
           gap: 3,
           gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-          alignItems: 'stretch',
+          // Each panel sizes to its own content (no stretch-to-match), so a short
+          // panel next to a tall one isn't blown up with empty space.
+          alignItems: 'start',
         }}
       >
         <ReportCard title="Category breakdown">
