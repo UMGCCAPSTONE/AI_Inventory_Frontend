@@ -84,7 +84,6 @@
 }
 
 .nav-link:not(.active):hover,
-.service-pill:hover,
 .user-chip:hover {
   background: rgba(43, 32, 22, 0.06);
 }
@@ -96,7 +95,6 @@
   flex: 0 0 auto;
 }
 
-.service-pill,
 .user-chip {
   min-height: 42px;
   border: 1px solid var(--line);
@@ -108,33 +106,6 @@
   transition:
     background 150ms ease,
     border-color 150ms ease;
-}
-
-.service-pill {
-  min-width: 132px;
-  padding: 8px 20px 7px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 2px;
-}
-
-.service-pill span {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.8px;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.service-pill strong {
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-size: 19px;
-  font-style: italic;
-  line-height: 1;
 }
 
 .user-chip {
@@ -803,13 +774,9 @@ main {
     justify-content: space-between;
   }
 
-  .service-pill,
   .user-chip {
     flex: 1 1 0;
     min-width: 0;
-  }
-
-  .user-chip {
     justify-content: center;
   }
 

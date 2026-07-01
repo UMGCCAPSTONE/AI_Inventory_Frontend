@@ -33,7 +33,8 @@ function App() {
   const avatarInitial =
     user?.displayName?.[0]?.toUpperCase() ?? user?.email?.[0]?.toUpperCase() ?? null
 
-  const displayName = user?.displayName ?? user?.email ?? null
+  const firstName = user?.displayName?.trim().split(/\s+/)[0] ?? null
+  const displayName = firstName ? `Chef ${firstName}` : user?.email ?? null
 
   return (
     <>
@@ -62,10 +63,6 @@ function App() {
         </nav>
 
         <div className="account-area">
-          <button className="service-pill" type="button">
-            <span>Service</span>
-            <strong>Not set</strong>
-          </button>
           {user ? (
             <button
               className="user-chip"
