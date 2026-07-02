@@ -47,6 +47,10 @@ ARG VITE_FIREBASE_API_KEY
 ARG VITE_FIREBASE_AUTH_DOMAIN
 ARG VITE_FIREBASE_PROJECT_ID
 ARG VITE_FIREBASE_APP_ID
+# Frontend half of the AUTH_DISABLED toggle (backend ADR 0016): 'true' forces the
+# login-less build even when the four VITE_FIREBASE_* values are present, so ONE
+# repo variable flips the whole site. Wired from AUTH_DISABLED by the prod compose.
+ARG VITE_AUTH_DISABLED
 COPY client/ ./
 RUN npm run build
 
