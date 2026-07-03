@@ -47,22 +47,20 @@ function CategoryDonutChart() {
     <Box
       aria-label="Category breakdown"
       sx={{
-        display: 'grid',
-        gridTemplateColumns: 'auto auto auto auto',
-        columnGap: 2,
-        rowGap: 0.75,
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
         alignItems: 'center',
-        justifyContent: 'space-between',
+        gap: { xs: 2, sm: 3 },
       }}
     >
-      {/* Donut occupies the first column, spanning every legend row. */}
+      {/* Donut — fixed size, never shrinks. Sits above the legend on narrow
+          screens (column), beside it on wider ones (row). */}
       <Box
         sx={{
-          gridColumn: 1,
-          gridRow: `1 / span ${rows.length}`,
           position: 'relative',
           width: 180,
           height: 180,
+          flexShrink: 0,
         }}
       >
         <PieChart
@@ -91,32 +89,47 @@ function CategoryDonutChart() {
         </Box>
       </Box>
 
-      {rows.map((r, i) => (
-        <Fragment key={r.category}>
-          <Box
-            sx={{ gridColumn: 2, gridRow: i + 1, display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}
-          >
-            <Box
-              sx={{
-                width: 10,
-                height: 10,
-                borderRadius: '2px',
-                bgcolor: CHART_COLORS[i % CHART_COLORS.length],
-                flexShrink: 0,
-              }}
-            />
-            <Typography variant="body2" noWrap>
-              {CATEGORY_LABELS[r.category as Category] ?? r.category}
+      {/* Legend — full width beneath/beside the donut. Three columns: the label
+          flexes and truncates (minmax(0, 1fr)); count + price stay on one line. */}
+      <Box
+        sx={{
+          width: '100%',
+          minWidth: 0,
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) auto auto',
+          columnGap: 2,
+          rowGap: 0.75,
+          alignItems: 'center',
+        }}
+      >
+        {rows.map((r, i) => (
+          <Fragment key={r.category}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+              <Box
+                sx={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: '2px',
+                  bgcolor: CHART_COLORS[i % CHART_COLORS.length],
+                  flexShrink: 0,
+                }}
+              />
+              <Typography variant="body2" noWrap>
+                {CATEGORY_LABELS[r.category as Category] ?? r.category}
+              </Typography>
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+              {r.itemCount} items
             </Typography>
-          </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ gridColumn: 3, gridRow: i + 1 }}>
-            {r.itemCount} items
-          </Typography>
-          <Typography variant="body2" sx={{ gridColumn: 4, gridRow: i + 1, fontWeight: 600 }}>
-            {money.format(r.totalValue)}
-          </Typography>
-        </Fragment>
-      ))}
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 600, whiteSpace: 'nowrap', textAlign: 'right' }}
+            >
+              {money.format(r.totalValue)}
+            </Typography>
+          </Fragment>
+        ))}
+      </Box>
     </Box>
   )
 }

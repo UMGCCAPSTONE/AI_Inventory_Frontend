@@ -36,8 +36,12 @@ export default function SupplierCard({ supplier, onView, onEdit }: Props) {
       sx={{
         display: 'flex',
         alignItems: 'center',
+        // Wrap on narrow screens so the status chip / delivery date / actions
+        // drop to a second line instead of overflowing the viewport.
+        flexWrap: { xs: 'wrap', sm: 'nowrap' },
+        rowGap: 1,
         gap: 2,
-        px: 3,
+        px: { xs: 2, sm: 3 },
         py: 2,
         borderBottom: 1,
         borderColor: 'divider',
